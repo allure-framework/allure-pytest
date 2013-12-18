@@ -1,0 +1,18 @@
+#IDEA Files
+.idea
+target
+*.iml
+*.ipr
+
+#Eclipse files
+*.settings
+*.classpath
+*.project
+*.pydevproject
+
+*__pycache__
+*.pyc
+*.swp
+build
+
+

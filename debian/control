@@ -1,0 +1,12 @@
+Source: pytest-allure-adaptor
+Maintainer: revan <revan@yandex-team.ru>
+Section: python
+Priority: optional
+Build-Depends: python-setuptools (>= 0.6b3), python-all (>= 2.6.6-3), debhelper (>= 7), python-lxml, python-pytest, python-pyhamcrest
+Standards-Version: 3.9.1
+
+Package: python-pytest-allure-adaptor
+Architecture: all
+Depends: ${misc:Depends}, ${python:Depends}, python-pytest, python-lxml
+Description: Plugin for py.test to generate allure xml reports
+

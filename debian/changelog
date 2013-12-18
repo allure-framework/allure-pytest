@@ -1,0 +1,101 @@
+pytest-allure-adaptor (1.2.9) unstable; urgency=low
+
+  * VALID_ASCII is now valid for python ascii codec
+
+ -- pupssman <pupssman@yandex-team.ru>  Mon, 18 Dec 2013 18:00:00 +0400
+
+pytest-allure-adaptor (1.2.8) unstable; urgency=low
+
+  * New xsd schema adaptation.
+
+ -- mavlyutov <mavlyutov@yandex-team.ru>  Mon, 25 Nov 2013 18:00:00 +0400
+
+pytest-allure-adaptor (1.2.7) unstable; urgency=low
+
+  * Left a tool inside a patient during surgery, woops.
+
+ -- puppsman <pupssman@yandex-team.ru>  Wed, 13 Nov 2013 17:00:00 +0400
+
+pytest-allure-adaptor (1.2.6) unstable; urgency=low
+
+  * Left a tool inside a patient during surgery, woops.
+
+ -- puppsman <pupssman@yandex-team.ru>  Wed, 13 Nov 2013 12:00:00 +0400
+
+ pytest-allure-adaptor (1.2.5) unstable; urgency=low
+
+  * Fix bug with illegal char esaping
+
+ -- puppsman <pupssman@yandex-team.ru>  Tue, 12 Nov 2013 16:00:00 +0400
+
+pytest-allure-adaptor (1.2.4) unstable; urgency=low
+
+  * Fix bug with attach in fixture teardown
+
+ -- puppsman <pupssman@yandex-team.ru>  Tue, 12 Nov 2013 16:00:00 +0400
+
+pytest-allure-adaptor (1.2.3) unstable; urgency=low
+
+  * Introduced severities and --allure_severities
+
+ -- puppsman <pupssman@yandex-team.ru>  Fri, 8 Nov 2013 17:00:00 +0400
+
+pytest-allure-adaptor (1.2.2) unstable; urgency=low
+
+  * Fix steps in case of missing allurexml
+
+ -- puppsman <pupssman@yandex-team.ru>  Thu, 7 Nov 2013 19:30:00 +0400
+
+pytest-allure-adaptor (1.2.1) unstable; urgency=low
+
+  * Steps now can be used as a decorator
+
+ -- puppsman <pupssman@yandex-team.ru>  Thu, 7 Nov 2013 19:00:00 +0400
+
+pytest-allure-adaptor (1.2.0) unstable; urgency=low
+
+  * Now with steps! Hail baidarov@ for great help!
+
+ -- puppsman <pupssman@yandex-team.ru>  Thu, 7 Nov 2013 17:00:00 +0400
+
+pytest-allure-adaptor (1.1.2) unstable; urgency=low
+
+  * Now saving unicode attachments as utf-8 (fixes issue with Catured stdXXX)
+
+ -- puppsman <pupssman@yandex-team.ru>  Tue, 5 Nov 2013 18:00:00 +0400
+
+ pytest-allure-adaptor (1.1.1) unstable; urgency=low
+
+  * Attaching only in case of configured allure
+
+ -- puppsman <pupssman@yandex-team.ru>  Fri, 1 Nov 2013 11:00:00 +0400
+
+pytest-allure-adaptor (1.1.0) unstable; urgency=low
+
+  * Syncing version with the whole allure, using new XML namespace
+
+ -- puppsman <pupssman@yandex-team.ru>  Wed, 23 Oct 2013 17:00:00 +0400
+
+pytest-allure-adaptor (0.2.3) unstable; urgency=low
+
+  * Replacing bad symbols in the XML
+
+ -- puppsman <pupssman@yandex-team.ru>  Tue, 29 Oct 2013 12:24:00 +0400
+
+pytest-allure-adaptor (0.2.2) unstable; urgency=low
+
+  * Using UID for testsuite name
+
+ -- puppsman <pupssman@yandex-team.ru>  Mon, 28 Oct 2013 18:44:00 +0400
+
+pytest-allure-adaptor (0.2.1) unstable; urgency=low
+
+  * Major upgrade
+
+ -- puppsman <pupssman@yandex-team.ru>  Wed, 23 Oct 2013 17:00:00 +0400
+
+pytest-allure-adaptor (0.0.4) unstable; urgency=low
+
+  * Initial
+
+ -- revan <revan@yandex-team.ru>  Fri, 02 Aug 2013 16:43:58 +0400
