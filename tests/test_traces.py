@@ -72,14 +72,39 @@ def test_collect_error(report_for):
                                                                             'SyntaxError')))
 
 
-def test_xfail(report_for):
+def test_xpass(report_for):
     report = report_for("""
     import pytest
 
-    @pytest.mark.xfail
+    @pytest.mark.xfail(reason='ololo')
     def test_Y():
         assert True
     """)
 
     assert_that(report, has_error(message='xpassed',
-                                  trace=' '))
+                                  trace='ololo'))
+
+
+def test_xfail(report_for):
+    report = report_for("""
+    import pytest
+
+    @pytest.mark.xfail(reason='ololo')
+    def test_Y():
+        assert False
+    """)
+
+    assert_that(report, has_error(message='skipped',
+                                  trace='ololo'))
+
+
+def test_skip(report_for):
+    report = report_for("""
+    import pytest
+
+    def test_Y():
+        pytest.skip('ololo')
+    """)
+
+    assert_that(report, has_error(message='skipped',
+                                  trace='Skipped: ololo'))

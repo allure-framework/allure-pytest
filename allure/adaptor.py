@@ -261,7 +261,11 @@ class AllureXML(object):
 
         if kw['status'] in FAILED_STATUSES:
             test.failure = Failure(message=kw['exceptionMessage'],
-                                        trace=report.longrepr or ' ')
+                                        trace=report.longrepr or report.wasxfail)
+        elif kw['status'] == Status.SKIPPED:
+            test.failure = Failure(message='skipped',
+                                        trace=type(report.longrepr) == tuple and report.longrepr[2]  # FIXME: see pytest.runner.pytest_runtest_makereport
+                                              or report.wasxfail)
         return test
 
     def finish_suite(self):
