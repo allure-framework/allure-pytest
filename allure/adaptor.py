@@ -39,14 +39,14 @@ def pytest_addoption(parser):
         return entries
 
     parser.getgroup("general").addoption('--allure_severities',
-                                           action="store",
-                                           dest="allureseverities",
-                                           metavar="SEVERITIES_LIST",
-                                           default=None,
-                                           type=severity_type,
-                                           help="""Comma-separated list of severity names.
-                                           Tests only with these severities will be run.
-                                           Possible values are:%s.""" % ', '.join(severities))
+                                         action="store",
+                                         dest="allureseverities",
+                                         metavar="SEVERITIES_LIST",
+                                         default=None,
+                                         type=severity_type,
+                                         help="""Comma-separated list of severity names.
+                                         Tests only with these severities will be run.
+                                         Possible values are:%s.""" % ', '.join(severities))
 
 
 def pytest_configure(config):
@@ -128,7 +128,7 @@ def pytest_namespace():
 
                 def __exit__(self, exc_type, exc_val, exc_tb):  # @UnusedVariable
                     if self.allure:
-                        if  exc_type is not None:
+                        if exc_type is not None:
                             if exc_type == Skipped:
                                 self.step.status = Status.SKIPPED
                             else:
@@ -201,8 +201,8 @@ class AllureXML(object):
         Attaches ``contents`` with ``title`` and ``attach_type`` to the current active thing
         """
         attach = Attach(source=self.save_attach(contents, attach_type=attach_type),
-                                       title=title,
-                                       type=attach_type)
+                        title=title,
+                        type=attach_type)
         self.stack[-1].attachments.append(attach)
 
     def start_step(self, title):
@@ -261,7 +261,11 @@ class AllureXML(object):
 
         if kw['status'] in FAILED_STATUSES:
             test.failure = Failure(message=kw['exceptionMessage'],
-                                        trace=report.longrepr or ' ')
+                                   trace=report.longrepr or report.wasxfail)
+        elif kw['status'] == Status.SKIPPED:
+            test.failure = Failure(message='skipped',
+                                   trace=type(report.longrepr) == tuple and report.longrepr[2] or report.wasxfail)  # FIXME: see pytest.runner.pytest_runtest_makereport
+
         return test
 
     def finish_suite(self):

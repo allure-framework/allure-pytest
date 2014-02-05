@@ -1,3 +1,9 @@
+pytest-allure-adaptor (1.2.10) unstable; urgency=low
+
+  * Add failure elements for skips to display skip reasons
+
+ -- pupssman <pupssman@yandex-team.ru>  Fri, 31 Jan 2014 16:00:00 +0400
+
 pytest-allure-adaptor (1.2.9) unstable; urgency=low
 
   * VALID_ASCII is now valid for python ascii codec
