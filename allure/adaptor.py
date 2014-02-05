@@ -330,7 +330,7 @@ class AllureXML(object):
         Writes Collection testsuite only if there were failures.
         """
 
-        if self.testsuite.tests:
+        if self.testsuite and self.testsuite.tests:
             self.finish_suite()
         else:
             self.testsuite = None
