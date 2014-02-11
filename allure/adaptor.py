@@ -5,7 +5,6 @@ import pytest
 
 from lxml import etree
 from contextlib import contextmanager
-from traceback import format_exception_only
 
 from _pytest.junitxml import mangle_testnames
 
@@ -13,7 +12,7 @@ from allure.structure import Attach, TestCase, Failure, TestSuite, TestStep
 from allure.constants import Status, \
     AttachmentType, Severity, FAILED_STATUSES
 from allure.utils import sec2ms, parent_module, parent_down_from_module, now, \
-    severity_of, all_of
+    severity_of, all_of, present_exception
 from _pytest.runner import Skipped
 from functools import wraps
 import argparse
@@ -233,8 +232,7 @@ class AllureXML(object):
             'startTime': sec2ms(getattr(report, 'start_time', 0)),
             'stopTime': sec2ms(getattr(report, 'stop_time', 0)),
             'description': getattr(report, 'desc', ''),
-            'exceptionMessage': (getattr(report, 'exception', None) and ''.join(format_exception_only(type(report.exception.value),
-                                                                                                      report.exception.value)).strip()) or (hasattr(report, 'result') and report.result) or report.outcome
+            'exceptionMessage': (getattr(report, 'exception', None) and present_exception(report.exception.value)) or (hasattr(report, 'result') and report.result) or report.outcome
         }
 
     def _start_case(self, name, severity=Severity.NORMAL):
