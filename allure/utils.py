@@ -7,14 +7,22 @@ Created on Oct 22, 2013
 
 @author: pupssman
 '''
+
+import py
+import re
+import sys
+import time
+import hashlib
+import inspect
+
 from collections import namedtuple
 from lxml import objectify
+from traceback import format_exception_only
+
 from _pytest.python import Module
+
 from allure.contrib.recordtype import recordtype
-import hashlib
-import time
 from allure.constants import Severity
-import inspect
 
 
 def element_maker(name, namespace):
@@ -39,9 +47,32 @@ class Rule:
 
 
 # see http://en.wikipedia.org/wiki/Valid_characters_in_XML#Non-restricted_characters
-# limited to first 128 chars
-VALID_ASCII = map(chr, [0x09, 0x0A, 0x0D] + range(0x20, 0x7F))
-MAGIC = u'�'
+
+# We need to get the subset of the invalid unicode ranges according to
+# XML 1.0 which are valid in this python build.  Hence we calculate
+# this dynamically instead of hardcoding it.  The spec range of valid
+# chars is: Char ::= #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD]
+#                    | [#x10000-#x10FFFF]
+_legal_chars = (0x09, 0x0A, 0x0d)
+_legal_ranges = (
+    (0x20, 0x7E),
+    (0x80, 0xD7FF),
+    (0xE000, 0xFFFD),
+    (0x10000, 0x10FFFF),
+)
+_legal_xml_re = [unicode("%s-%s") % (unichr(low), unichr(high)) for (low, high) in _legal_ranges if low < sys.maxunicode]
+_legal_xml_re = [unichr(x) for x in _legal_chars] + _legal_xml_re
+illegal_xml_re = re.compile(unicode('[^%s]') % unicode('').join(_legal_xml_re))
+
+
+def legalize_xml(arg):
+    def repl(matchobj):
+        i = ord(matchobj.group())
+        if i <= 0xFF:
+            return unicode('#x%02X') % i
+        else:
+            return unicode('#x%04X') % i
+    return illegal_xml_re.sub(repl, arg)
 
 
 class Element(Rule):
@@ -54,9 +85,12 @@ class Element(Rule):
             return self.value(name, str(what))
 
         if not isinstance(what, unicode):
-            what = ''.join(x if x in VALID_ASCII else MAGIC for x in what)
+            try:
+                what = unicode(what, 'utf-8')
+            except UnicodeDecodeError:
+                what = unicode(what, 'utf-8', errors='replace')
 
-        return element_maker(self.name or name, self.namespace)(what)
+        return element_maker(self.name or name, self.namespace)(legalize_xml(what))
 
 
 class Attribute(Rule):
@@ -147,3 +181,17 @@ def all_of(enum):
     returns list of name-value pairs for ``enum`` from :py:mod:`allure.constants`
     """
     return filter(lambda (n, v): not n.startswith('_'), inspect.getmembers(enum))
+
+
+def unicodify(something):
+    return py.xml.escape(something)  # @UndefinedVariable
+
+
+def present_exception(e):
+    """
+    Try our best at presenting the exception in a readable form
+    """
+    if not isinstance(e, SyntaxError):
+        return unicodify('%s: %s' % (type(e).__name__, unicodify(e)))
+    else:
+        return unicodify(format_exception_only(e))
