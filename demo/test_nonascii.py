@@ -19,3 +19,9 @@ def test_fail():
     u'Этот тест падает'
 
     assert False
+
+
+def test_raise_cyrilling():
+    u'Этот тест выкидывает исключение с русскими буквами'
+
+    raise Exception(u'Невероятная проблема!')
