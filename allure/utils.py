@@ -8,7 +8,6 @@ Created on Oct 22, 2013
 @author: pupssman
 '''
 
-import py
 import re
 import sys
 import time
@@ -184,7 +183,19 @@ def all_of(enum):
 
 
 def unicodify(something):
-    return py.xml.escape(something)  # @UndefinedVariable
+    def convert(x):
+        try:
+            return unicode(x)
+        except UnicodeDecodeError:
+            return unicode(x, 'utf-8', errors='replace')
+
+    try:
+        return convert(something)  # @UndefinedVariable
+    except TypeError:
+        try:
+            return convert(str(something))  # @UndefinedVariable
+        except UnicodeEncodeError:
+            return convert('<nonpresentable %s>' % type(something))  # @UndefinedVariable
 
 
 def present_exception(e):
