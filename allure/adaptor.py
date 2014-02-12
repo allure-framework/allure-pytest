@@ -204,12 +204,12 @@ class AllureXML(object):
                         type=attach_type)
         self.stack[-1].attachments.append(attach)
 
-    def start_step(self, title):
+    def start_step(self, name):
         """
         Starts an new :py:class:`allure.structure.TestStep` with given title,
         pushes it to the ``self.stack`` and returns the step.
         """
-        step = TestStep(title=title,
+        step = TestStep(name=name,
                         start=now(),
                         attachments=[],
                         steps=[])

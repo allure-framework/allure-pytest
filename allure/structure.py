@@ -46,9 +46,10 @@ TestSuite = xmlfied('test-suite',
 
 
 TestStep = xmlfied('step',
-                   fields=[('title', Element()),
-                           ('attachments', Many(Nested())),
-                           ('steps', Many(Nested()))],
+                   name=Element(),
+                   title=Element().if_(lambda x: x),
+                   attachments=Many(Nested()),
+                   steps=Many(Nested()),
                    start=Attribute(),
                    stop=Attribute(),
                    status=Attribute())

@@ -17,8 +17,8 @@ from allure.constants import Status
 import pytest
 
 
-def step_with(title, start, stop, status):
-    return has_properties(title=title,
+def step_with(name, start, stop, status):
+    return has_properties(name=name,
                           attrib=all_of(
                                         has_entry('start', has_float(greater_than_or_equal_to(start))),
                                         has_entry('stop', has_float(less_than_or_equal_to(stop))),
@@ -48,10 +48,10 @@ def test_one_step(timed_report_for, status, expr):
             %s
     """ % expr)
 
-    assert_that(report['{}test-cases'], has_property('steps', step_with(title='my_fancy_step',
-                                                                        start=start,
-                                                                        stop=stop,
-                                                                        status=status)))
+    assert_that(report.findall('.//test-case/steps/step'), contains(step_with(name='my_fancy_step',
+                                                                              start=start,
+                                                                              stop=stop,
+                                                                              status=status)))
 
 
 def test_two_steps(timed_report_for):
@@ -65,7 +65,7 @@ def test_two_steps(timed_report_for):
             assert False
     """)
 
-    assert_that(report['{}test-cases']['steps'], contains(step_with('step_1', start, stop, Status.PASSED),
+    assert_that(report.findall('.//test-case/steps/step'), contains(step_with('step_1', start, stop, Status.PASSED),
                                                           step_with('step_2', start, stop, Status.FAILED)))
 
 
@@ -82,7 +82,7 @@ def test_fixture_step(timed_report_for):
         assert afixture
     """)
 
-    assert_that(report['{}test-cases']['steps'], contains(step_with('fixture', start, stop, Status.PASSED)))
+    assert_that(report.findall('.//test-case/steps/step'), contains(step_with('fixture', start, stop, Status.PASSED)))
 
 
 def test_nested_steps(timed_report_for):
@@ -95,8 +95,10 @@ def test_nested_steps(timed_report_for):
 
     """)
 
-    assert_that(report['{}test-cases']['steps'], contains(all_of(step_with('outer', start, stop, Status.FAILED),
-                                                                 has_property('steps', step_with('inner', start, stop, Status.FAILED)))))
+    assert_that(report.findall('.//test-case/steps/step'), contains(all_of(step_with('outer', start, stop, Status.FAILED),
+                                                                           has_property('steps',
+                                                                                        has_property('step',
+                                                                                                     step_with('inner', start, stop, Status.FAILED))))))
 
 
 def test_step_attach(timed_report_for):
@@ -107,8 +109,10 @@ def test_step_attach(timed_report_for):
             pytest.allure.attach('myattach', 'abcdef')
     """)
 
-    assert_that(report['{}test-cases']['steps'], contains(all_of(step_with('withattach', start, stop, Status.PASSED),
-                                                                 has_property('attachments', has_entry('title', 'myattach')))))
+    assert_that(report.findall('.//test-case/steps/step'), contains(all_of(step_with('withattach', start, stop, Status.PASSED),
+                                                                           has_property('attachments',
+                                                                                        has_property('attachment',
+                                                                                                     has_entry('title', 'myattach'))))))
 
 
 def test_step_function_decorator(timed_report_for):
@@ -123,7 +127,7 @@ def test_step_function_decorator(timed_report_for):
         assert foo(123)
     """)
 
-    assert_that(report.findall('test-cases/steps'), contains(step_with('step_foo', start, stop, Status.PASSED)))
+    assert_that(report.findall('.//test-case/steps/step'), contains(step_with('step_foo', start, stop, Status.PASSED)))
 
 
 def test_step_fixture_decorator(timed_report_for):
@@ -139,7 +143,7 @@ def test_step_fixture_decorator(timed_report_for):
         assert foo
     """)
 
-    assert_that(report.findall('test-cases/steps'), contains(step_with('fixture_step_foo', start, stop, Status.PASSED)))
+    assert_that(report.findall('.//test-case/steps/step'), contains(step_with('fixture_step_foo', start, stop, Status.PASSED)))
 
 
 def test_step_fixture_method(timed_report_for):
@@ -162,4 +166,4 @@ def test_step_fixture_method(timed_report_for):
         assert foo.bar(5) == 5
     """)
 
-    assert_that(report.findall('test-cases/steps'), contains(step_with('fixture_step_bar', start, stop, Status.PASSED)))
+    assert_that(report.findall('.//test-case/steps/step'), contains(step_with('fixture_step_bar', start, stop, Status.PASSED)))
