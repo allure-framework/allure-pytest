@@ -11,25 +11,24 @@ from allure.utils import xmlfied, Attribute, Element, Many, \
 from allure.constants import ALLURE_NAMESPACE
 
 
-Attach = xmlfied('attachments',
+Attach = xmlfied('attachment',
                  source=Attribute(),
                  title=Attribute(),
                  type=Attribute())
 
 
 Failure = xmlfied('failure',
-                  fields=[('message', Element()),
-                          ('trace', Element('stack-trace'))
-                          ])
+                  message=Element(),
+                  trace=Element('stack-trace'))
 
 
-TestCase = xmlfied('test-cases',
-                   fields=[('title', Element()),
-                           ('description', Element().if_(lambda x: x)),
-                           ('failure', Nested().if_(lambda x: x)),
-                           ('steps', Many(Nested())),
-                           ('attachments', Many(Nested())),
-                           ],
+TestCase = xmlfied('test-case',
+                   name=Element(),
+                   title=Element().if_(lambda x: x),
+                   description=Element().if_(lambda x: x),
+                   failure=Nested().if_(lambda x: x),
+                   steps=Many(Nested()),
+                   attachments=Many(Nested()),
                    status=Attribute(),
                    start=Attribute(),
                    stop=Attribute(),
@@ -38,15 +37,15 @@ TestCase = xmlfied('test-cases',
 
 TestSuite = xmlfied('test-suite',
                     namespace=ALLURE_NAMESPACE,
-                    fields=[('title', Element()),
-                            ('description', Element().if_(lambda x: x)),
-                            ('tests', Many(Nested()))
-                            ],
+                    name=Element(),
+                    title=Element().if_(lambda x: x),
+                    description=Element().if_(lambda x: x),
+                    tests=Many(Nested(), name='test-cases'),
                     start=Attribute(),
                     stop=Attribute())
 
 
-TestStep = xmlfied('steps',
+TestStep = xmlfied('step',
                    fields=[('title', Element()),
                            ('attachments', Many(Nested())),
                            ('steps', Many(Nested()))],

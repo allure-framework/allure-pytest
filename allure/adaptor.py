@@ -239,7 +239,7 @@ class AllureXML(object):
         """
         Starts a new :py:class:`allure.structure.TestCase` and pushes it to the ``self.stack``
         """
-        test = TestCase(title=name,
+        test = TestCase(name=name,
                         severity=severity,
                         attachments=[],
                         steps=[])
