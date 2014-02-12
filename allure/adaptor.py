@@ -281,7 +281,7 @@ class AllureXML(object):
         if not self.testsuite:
             module = parent_module(item)
 
-            self.testsuite = TestSuite(title='.'.join(mangle_testnames(module.nodeid.split("::"))),
+            self.testsuite = TestSuite(name='.'.join(mangle_testnames(module.nodeid.split("::"))),
                                        description=module.module.__doc__ or None,
                                        tests=[],
                                        start=now())
