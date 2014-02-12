@@ -14,7 +14,6 @@ import time
 import hashlib
 import inspect
 
-from collections import namedtuple
 from lxml import objectify
 from traceback import format_exception_only
 
@@ -102,9 +101,16 @@ class Nested(Rule):
         return what.toxml()
 
 
-class Many(Rule, namedtuple('Many', 'rule')):
+class Many(Rule):
+    def __init__(self, rule, name='', namespace=''):
+        self.rule = rule
+        self.name = name
+        self.namespace = namespace
+
     def value(self, name, what):
-        return [self.rule.value(name, x) for x in what]
+        el = element_maker(self.name or name, self.namespace)
+
+        return el(*[self.rule.value(name, x) for x in what])
 
 
 def xmlfied(el_name, namespace='', fields=[], **kw):

@@ -55,31 +55,33 @@ def test_nested():
 
 
 def test_many_elements():
-    Box = xmlfied('box', foo=Many(Element()))
+    Box = xmlfied('box', foos=Many(Element(name='foo')))
 
-    box = Box(foo=['a', 'b', 'c'])
+    box = Box(foos=['a', 'b', 'c'])
 
     assert_that(etree.tostring(box.toxml()), all_of(
-                                                    string_contains_in_order('<box>', '<foo>', 'a', '</foo>', '</box>'),
-                                                    string_contains_in_order('<box>', '<foo>', 'b', '</foo>', '</box>'),
-                                                    string_contains_in_order('<box>', '<foo>', 'c', '</foo>', '</box>'),
+                                                    string_contains_in_order('<box>', '<foos>', '<foo>', 'a', '</foo>', '</foos>', '</box>'),
+                                                    string_contains_in_order('<box>', '<foos>', '<foo>', 'b', '</foo>', '</foos>', '</box>'),
+                                                    string_contains_in_order('<box>', '<foos>', '<foo>', 'c', '</foo>', '</foos>', '</box>'),
                                                     ))
 
 
 def test_many_nested():
     Item = xmlfied('item', value=Element())
-    Box = xmlfied('box', foo=Many(Nested()))
+    Box = xmlfied('box', items=Many(Nested()))
 
-    box = Box(foo=[])
-    box.foo.append(Item('a'))
-    box.foo.append(Item('a'))
-    box.foo.append(Item('a'))
+    box = Box(items=[])
+    box.items.append(Item('a'))
+    box.items.append(Item('a'))
+    box.items.append(Item('a'))
 
     assert_that(etree.tostring(box.toxml()), all_of(
                                                     string_contains_in_order('<box>',
+                                                                             '<items>',
                                                                              '<item>', 'a', '</item>',
                                                                              '<item>', 'a', '</item>',
                                                                              '<item>', 'a', '</item>',
+                                                                             '</items>',
                                                                              '</box>'),
                                                     ))
 
