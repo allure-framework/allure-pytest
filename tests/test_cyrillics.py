@@ -21,7 +21,7 @@ def test_cyrillic_desc(report_for):
         assert True
     """)
 
-    assert_that(report.findall('test-cases'), contains(
+    assert_that(report.findall('.//test-case'), contains(
                                                        has_property('description', u'тест с русскоязычным описанием')))
 
 
