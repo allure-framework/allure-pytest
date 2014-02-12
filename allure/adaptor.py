@@ -204,12 +204,12 @@ class AllureXML(object):
                         type=attach_type)
         self.stack[-1].attachments.append(attach)
 
-    def start_step(self, title):
+    def start_step(self, name):
         """
         Starts an new :py:class:`allure.structure.TestStep` with given title,
         pushes it to the ``self.stack`` and returns the step.
         """
-        step = TestStep(title=title,
+        step = TestStep(name=name,
                         start=now(),
                         attachments=[],
                         steps=[])
@@ -239,7 +239,7 @@ class AllureXML(object):
         """
         Starts a new :py:class:`allure.structure.TestCase` and pushes it to the ``self.stack``
         """
-        test = TestCase(title=name,
+        test = TestCase(name=name,
                         severity=severity,
                         attachments=[],
                         steps=[])
@@ -281,7 +281,7 @@ class AllureXML(object):
         if not self.testsuite:
             module = parent_module(item)
 
-            self.testsuite = TestSuite(title='.'.join(mangle_testnames(module.nodeid.split("::"))),
+            self.testsuite = TestSuite(name='.'.join(mangle_testnames(module.nodeid.split("::"))),
                                        description=module.module.__doc__ or None,
                                        tests=[],
                                        start=now())

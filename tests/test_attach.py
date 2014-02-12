@@ -9,9 +9,20 @@ Created on Oct 21, 2013
 '''
 import pytest
 
-from hamcrest import has_entries, assert_that, is_
+from hamcrest import has_entries, assert_that, is_, contains, has_property
 from allure.constants import AttachmentType
 from allure.utils import all_of
+
+
+def test_smoke(report_for):
+    report = report_for("""
+    from pytest import allure as A
+
+    def test_x():
+        A.attach('Foo', 'Bar', A.attach_type.TEXT)
+    """)
+
+    assert_that(report.findall('test-cases/test-case/attachments/attachment'), contains(has_property('attrib', has_entries(title='Foo'))))
 
 
 @pytest.mark.parametrize('a_type', map(lambda x: x[0], all_of(AttachmentType)))
@@ -23,7 +34,7 @@ def test_attach_types(report_for, a_type):
         A.attach('Foo', 'Bar', A.attach_type.%s)
     """ % a_type)
 
-    assert_that(getattr(report, '{}test-cases').attachments.attrib, has_entries(title='Foo', type=getattr(AttachmentType, a_type)))
+    assert_that(report.find('.//attachment').attrib, has_entries(title='Foo', type=getattr(AttachmentType, a_type)))
 
 
 class TestContents:
@@ -40,7 +51,7 @@ class TestContents:
                 A.attach('Foo', %s, A.attach_type.TEXT)
             """ % repr(body))
 
-            filename = getattr(report, '{}test-cases').attachments.get('source')
+            filename = report.find('.//attachment').get('source')
 
             return reportdir.join(filename).read()
         return impl
@@ -71,4 +82,4 @@ def test_attach_in_fixture_teardown(report_for):
         assert True
     """)
 
-    assert_that(getattr(report, '{}test-cases').attachments.attrib, has_entries(title='Foo'))
+    assert_that(report.find('.//attachment').attrib, has_entries(title='Foo'))

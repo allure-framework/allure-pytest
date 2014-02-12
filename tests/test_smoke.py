@@ -30,7 +30,7 @@ def test_smoke_simple(report_for, statement):
         %s
     """ % statement)
 
-    assert_that(report.findall('test-cases'), contains(has_property('title')))
+    assert_that(report.findall('.//test-case'), contains(has_property('name')))
 
 
 @pytest.mark.parametrize('test', [
@@ -45,7 +45,7 @@ def test_smoke_decorated_success(report_for, test):
         assert 0
     """ % test)
 
-    assert_that(report.findall('test-cases'), contains(has_property('title')))
+    assert_that(report.findall('.//test-case'), contains(has_property('name')))
 
 
 def test_one_success(report_for):
@@ -55,8 +55,8 @@ def test_one_success(report_for):
         assert 1
     """)
 
-    assert_that(report.findall('test-cases'), contains(all_of(
-                                                              has_property('title', 'test_baz'),
+    assert_that(report.findall('.//test-case'), contains(all_of(
+                                                              has_property('name', 'test_baz'),
                                                               has_property('description', 'ololo a docstring'),
                                                               has_entry('status', Status.PASSED),
                                                               )))
@@ -69,8 +69,8 @@ def test_one_failure(report_for):
         assert 0
     """)
 
-    assert_that(report.findall('test-cases'), contains(all_of(
-                                                              has_property('title', 'test_fail'),
+    assert_that(report.findall('.//test-case'), contains(all_of(
+                                                              has_property('name', 'test_fail'),
                                                               has_property('description', 'fail test dosctring'),
                                                               has_entry('status', Status.FAILED),
                                                               has_property('failure',
@@ -113,8 +113,8 @@ def test_test_times(report_for, stmt):
 
     stop = time.time()
 
-    assert_that(report.findall('test-cases')[0].attrib, has_entries(start=has_float(greater_than(start * 1000)),
-                                                                    stop=has_float(less_than(stop * 1000))))
+    assert_that(report.find('.//test-case').attrib, has_entries(start=has_float(greater_than(start * 1000)),
+                                                                stop=has_float(less_than(stop * 1000))))
 
 
 def test_collection_error(report_for):
@@ -123,8 +123,8 @@ def test_collection_error(report_for):
     """)
 
     assert_that(report, all_of(
-                               has_property('{}test-cases', contains(
-                                                                     has_property('{}title', 'test_broken_module'))),
+                               has_property('{}test-cases', has_property('test-case', contains(
+                                                                                               has_property('{}name', 'test_broken_module')))),
                                has_property('{}title', 'Collection phase')))
 
 
@@ -141,9 +141,9 @@ def test_attaches_with_capture_exist(report_for, test):
         %s
     """ % test)
 
-    assert_that(getattr(report, '{}test-cases').findall('attachments'), contains_inanyorder(
-                                                                                            has_entry('title', 'Captured stdout'),
-                                                                                            has_entry('title', 'Captured stderr')))
+    assert_that(report.find('.//attachment'), contains_inanyorder(
+                                                                  has_entry('title', 'Captured stdout'),
+                                                                  has_entry('title', 'Captured stderr')))
 
 
 @pytest.mark.parametrize('channel', ['err', 'out'])
@@ -154,7 +154,7 @@ def test_attach_contents(report_for, channel):
         sys.std%s.write('OLOLO PEWPEW')
     """ % channel)
 
-    attach = getattr(report, '{}test-cases').attachments.get('source')
+    attach = report.find('.//attachment').get('source')
 
     assert_that(open(os.path.join('my_report_dir', attach)).read(), is_('OLOLO PEWPEW'))
 

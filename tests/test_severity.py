@@ -26,7 +26,7 @@ def test_method_severity(report_for, name, value, mark_way):
         pass
     """ % (mark_way % name))
 
-    assert_that(report.xpath("test-cases/@severity"), contains(value))
+    assert_that(report.xpath(".//test-case/@severity"), contains(value))
 
 
 def test_class_severity(report_for):
@@ -47,7 +47,7 @@ def test_class_severity(report_for):
             pass
     """)
 
-    assert_that(report.xpath("test-cases/@severity"), contains(Severity.CRITICAL, Severity.TRIVIAL))
+    assert_that(report.xpath(".//test-case/@severity"), contains(Severity.CRITICAL, Severity.TRIVIAL))
 
 
 def test_module_severity(report_for):
@@ -77,7 +77,7 @@ def test_module_severity(report_for):
             pass
     """)
 
-    assert_that(report.xpath("test-cases/@severity"), contains(Severity.MINOR, Severity.NORMAL, Severity.CRITICAL, Severity.TRIVIAL))
+    assert_that(report.xpath(".//test-case/@severity"), contains(Severity.MINOR, Severity.NORMAL, Severity.CRITICAL, Severity.TRIVIAL))
 
 
 @pytest.mark.parametrize('severities', [
@@ -108,9 +108,9 @@ def test_run_only(report_for, severities):
 
     a_status, b_status, c_status = [Status.PASSED if s in severities else Status.SKIPPED for s in [Severity.CRITICAL, Severity.NORMAL, Severity.MINOR]]
 
-    assert_that(report.xpath("test-cases"), contains(all_of(has_property('title', 'test_a'),
+    assert_that(report.xpath(".//test-case"), contains(all_of(has_property('name', 'test_a'),
                                                             has_property('attrib', has_entry('status', a_status))),
-                                                     all_of(has_property('title', 'test_b'),
+                                                     all_of(has_property('name', 'test_b'),
                                                             has_property('attrib', has_entry('status', b_status))),
-                                                     all_of(has_property('title', 'test_c'),
+                                                     all_of(has_property('name', 'test_c'),
                                                             has_property('attrib', has_entry('status', c_status)))))

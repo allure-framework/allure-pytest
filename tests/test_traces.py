@@ -12,11 +12,12 @@ from hamcrest.library.text.stringcontainsinorder import string_contains_in_order
 
 def has_error(message='', trace=''):
     return has_property('{}test-cases',
+                        has_property('test-case',
                                      has_property('failure',
                                                   has_properties({
                                                                   'message': message,
                                                                   'stack-trace': has_string(trace)
-                                                                  })))
+                                                                  }))))
 
 
 def test_smoke(report_for):
