@@ -39,7 +39,7 @@ class AllureImpl(object):
         """
         Attaches ``contents`` with ``title`` and ``attach_type`` to the current active thing
         """
-        attach = Attach(source=self.save_attach(contents, attach_type=attach_type),
+        attach = Attach(source=self._save_attach(contents, attach_type=attach_type),
                         title=title,
                         type=attach_type)
         self.stack[-1].attachments.append(attach)
@@ -64,12 +64,14 @@ class AllureImpl(object):
         step = self.stack.pop()
         step.stop = now()
 
-    def start_case(self, name, severity=Severity.NORMAL):
+    def start_case(self, name, description=None, severity=Severity.NORMAL):
         """
         Starts a new :py:class:`allure.structure.TestCase` and pushes it to the ``self.stack``
         """
         test = TestCase(name=name,
+                        description=description,
                         severity=severity,
+                        start=now(),
                         attachments=[],
                         steps=[])
         self.stack.append(test)
@@ -80,9 +82,12 @@ class AllureImpl(object):
         """
         test = self.stack[-1]
         test.status = status
+        test.stop = now()
 
         if failure:
             test.failure = failure
+
+        self.testsuite.tests.append(test)
 
         return test
 
@@ -114,7 +119,7 @@ class AllureImpl(object):
         """
 
         # FIXME: we should generate attachment name properly
-        with self.attachfile("%s-attachment.%s" % (uuid.uuid4(), attach_type)) as f:
+        with self._attachfile("%s-attachment.%s" % (uuid.uuid4(), attach_type)) as f:
             if isinstance(body, unicode):
                 f.write(body.encode('utf-8'))
             else:
