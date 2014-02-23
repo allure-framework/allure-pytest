@@ -57,6 +57,16 @@ def test_foo():
     assert make_some_data() is not None
 ```
 
+При необходимости использования step'ов в коде, который нужен и без pytest, вместо ```pytest.allure.step``` можно использовать ```allure.step```:
+
+```python
+import allure
+
+@allure.step('some operation')
+def do_operation():
+    # do stuff
+```
+
 Для фикстур поддержка несколько ограничена.
 
 
