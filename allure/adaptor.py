@@ -2,15 +2,15 @@ import pytest
 
 from _pytest.junitxml import mangle_testnames
 
-from allure.structure import Failure
 from allure.constants import Status, \
     AttachmentType, Severity, FAILED_STATUSES
 from allure.utils import parent_module, parent_down_from_module, \
-    severity_of, all_of, present_exception
+    severity_of, all_of, get_exception_message
 from _pytest.runner import Skipped
 from functools import wraps
 import argparse
 from allure.common import AllureImpl
+from collections import namedtuple
 
 
 def pytest_addoption(parser):
@@ -46,8 +46,9 @@ def pytest_addoption(parser):
 def pytest_configure(config):
     reportdir = config.option.allurereportdir
     if reportdir and not hasattr(config, 'slaveinput'):
-        config._allurexml = AllureXML(reportdir, config)
+        config._allurexml = AllureTestListener(reportdir, config)
         config.pluginmanager.register(config._allurexml)
+        config.pluginmanager.register(AllureCollectionListener(reportdir))
         pytest.allure._allurexml = config._allurexml  # FIXME: maybe we need a different injection mechanism
 
 
@@ -169,7 +170,7 @@ def pytest_namespace():
     return {'allure': AllureHelper()}
 
 
-class AllureXML(object):
+class AllureTestListener(object):
 
     def __init__(self, logdir, config):
         self.impl = AllureImpl(logdir)
@@ -182,11 +183,6 @@ class AllureXML(object):
 
         self.testsuite = None
 
-    def _get_exception_message(self, report):
-        return (getattr(report, 'exception', None) and present_exception(report.exception.value)) \
-               or (hasattr(report, 'result') and report.result) \
-               or report.outcome
-
     def _stop_case(self, report, status=None):
         """
         Finalizes with important data the test at the top of ``self.stack`` and returns it
@@ -194,15 +190,16 @@ class AllureXML(object):
         [self.attach(name, contents, AttachmentType.TEXT) for (name, contents) in dict(report.sections).items()]
 
         if status in FAILED_STATUSES:
-            failure = Failure(message=self._get_exception_message(report),
-                              trace=report.longrepr or report.wasxfail)
+            self.impl.stop_case(status,
+                                message=get_exception_message(report),
+                                trace=report.longrepr or report.wasxfail)
         elif status == Status.SKIPPED:
-            failure = Failure(message='skipped',
-                              trace=type(report.longrepr) == tuple and report.longrepr[2] or report.wasxfail)  # FIXME: see pytest.runner.pytest_runtest_makereport
+            # FIXME: see pytest.runner.pytest_runtest_makereport
+            self.impl.stop_case(status,
+                                message='skipped',
+                                trace=type(report.longrepr) == tuple and report.longrepr[2] or report.wasxfail)
         else:
-            failure = None
-
-        self.impl.stop_case(status, failure)
+            self.impl.stop_case(status)
 
     def pytest_runtest_protocol(self, __multicall__, item, nextitem):
         if not self.testsuite:
@@ -235,37 +232,6 @@ class AllureXML(object):
                 self._stop_case(report, status=Status.FAILED)
         elif report.skipped:
                 self._stop_case(report, status=Status.SKIPPED)
-#
-#     def pytest_collectstart(self):
-#         if not self.testsuite:
-#             self.testsuite = TestSuite(title='Collection phase',
-#                                        description='This is the tests collection phase. Failures are modules that failed to collect.',
-#                                        tests=[],
-#                                        start=now())
-#
-#     def pytest_collectreport(self, report):
-#         if not report.passed:
-#             name = self._get_report_kwarg(report)['name']
-#             self._start_case(name)
-#             if report.failed:
-#                 case = self._stop_case(report, status=Status.BROKEN)
-#             else:
-#                 case = self._stop_case(report, status=Status.SKIPPED)
-#
-#             # FIXME: pytest does not have that much hooks for us to get exact collect moments
-#             case.start = case.stop = now()
-#
-#             self.testsuite.tests.append(case)
-#
-#     def pytest_collection_finish(self):
-#         """
-#         Writes Collection testsuite only if there were failures.
-#         """
-#
-#         if self.testsuite and self.testsuite.tests:
-#             self.finish_suite()
-#         else:
-#             self.testsuite = None
 
     def pytest_runtest_makereport(self, item, call, __multicall__):
         """
@@ -277,3 +243,38 @@ class AllureXML(object):
             exception=call.excinfo,
             result=self.config.hook.pytest_report_teststatus(report=report)[0])  # get the failed/passed/xpassed thingy
         return report
+
+
+CollectFail = namedtuple('CollectFail', 'name status message trace')
+
+
+class AllureCollectionListener(object):
+    def __init__(self, logdir):
+        self.impl = AllureImpl(logdir)
+        self.fails = []
+
+    def pytest_collectreport(self, report):
+        if not report.passed:
+            if report.failed:
+                status = Status.BROKEN
+            else:
+                status = Status.SKIPPED
+
+            self.fails.append(CollectFail(name=mangle_testnames(report.nodeid.split("::"))[-1],
+                                          status=status,
+                                          message=get_exception_message(report),
+                                          trace=report.longrepr))
+
+    def pytest_collection_finish(self):
+        """
+        Writes Collection testsuite only if there were failures.
+        """
+
+        if self.fails:
+            self.impl.start_suite(name='test_collection_phase',
+                                  title='Collection phase',
+                                  description='This is the tests collection phase. Failures are modules that failed to collect.')
+            for fail in self.fails:
+                self.impl.start_case(name=fail.name)
+                self.impl.stop_case(status=fail.status, message=fail.message, trace=fail.trace)
+            self.impl.stop_suite()

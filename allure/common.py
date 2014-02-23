@@ -12,7 +12,7 @@ from contextlib import contextmanager
 
 from allure.utils import now
 from allure.constants import AttachmentType, Severity
-from allure.structure import Attach, TestStep, TestCase, TestSuite
+from allure.structure import Attach, TestStep, TestCase, TestSuite, Failure
 
 
 class AllureImpl(object):
@@ -76,7 +76,7 @@ class AllureImpl(object):
                         steps=[])
         self.stack.append(test)
 
-    def stop_case(self, status, failure=None):
+    def stop_case(self, status, message=None, trace=None):
         """
         Finalizes with important data the test at the top of ``self.stack`` and returns it
         """
@@ -84,18 +84,19 @@ class AllureImpl(object):
         test.status = status
         test.stop = now()
 
-        if failure:
-            test.failure = failure
+        if message or trace:
+            test.failure = Failure(message=message, trace=trace)
 
         self.testsuite.tests.append(test)
 
         return test
 
-    def start_suite(self, name, description=None):
+    def start_suite(self, name, description=None, title=None):
         """
         Starts a new Suite with given ``name`` and ``description``
         """
         self.testsuite = TestSuite(name=name,
+                                   title=title,
                                    description=description,
                                    tests=[],
                                    start=now())

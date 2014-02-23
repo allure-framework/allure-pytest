@@ -212,3 +212,12 @@ def present_exception(e):
         return unicodify('%s: %s' % (type(e).__name__, unicodify(e)))
     else:
         return unicodify(format_exception_only(e))
+
+
+def get_exception_message(report):
+    """
+    get exception message from pytest's internal ``report`` object
+    """
+    return (getattr(report, 'exception', None) and present_exception(report.exception.value)) \
+           or (hasattr(report, 'result') and report.result) \
+           or report.outcome
