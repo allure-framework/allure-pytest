@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 PACKAGE = "pytest-allure-adaptor"
-VERSION = "1.2.13"
+VERSION = "1.3.1"
 
 import os
 from setuptools import setup
@@ -15,12 +15,12 @@ setup(
     name=PACKAGE,
     version=VERSION,
     description=("Plugin for py.test to generate allure xml reports"),
-    author="revan",
-    author_email="revan@yandex-team.ru",
+    author="pupssman",
+    author_email="pupssman@yandex-team.ru",
     packages=["allure", "allure.contrib"],
-    url="https://github.yandex-team.ru/allure/allure-python",
+    url="https://github.com/allure-framework/allure-python",
     long_description=read('README.md'),
-    entry_points={'pytest11': ['allure_adaptor = allure.adaptor']},
+    entry_points={'pytest11': ['allure_adaptor = allure.pytest_plugin']},
     install_requires=[
         "lxml>=3.2.0",
         "pytest>=2.4.1"]

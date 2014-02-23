@@ -11,7 +11,7 @@ py.test --alluredir [path_to_report_dir]
 
 Подключение плагина в IDE:
 ```python
-pytest_plugins = 'allure.adaptor',\
+pytest_plugins = 'allure.pytest_plugin',\
 ```
 
 ### Advanced usage
@@ -57,6 +57,16 @@ def test_foo():
     assert make_some_data() is not None
 ```
 
+При необходимости использования step'ов в коде, который нужен и без pytest, вместо ```pytest.allure.step``` можно использовать ```allure.step```:
+
+```python
+import allure
+
+@allure.step('some operation')
+def do_operation():
+    # do stuff
+```
+
 Для фикстур поддержка несколько ограничена.
 
 
@@ -89,3 +99,8 @@ class TestBar:
 ```
 py.test my_tests/ --allure_severities=critical,blocker
 ```
+
+
+### Extention
+
+Для использования в других фреймворках выделен класс `allure.common.AllureImpl`, облегчающий создание привязок.
