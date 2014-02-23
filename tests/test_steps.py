@@ -115,17 +115,19 @@ def test_step_attach(timed_report_for):
                                                                                                      has_entry('title', 'myattach'))))))
 
 
-def test_step_function_decorator(timed_report_for):
+@pytest.mark.parametrize('package', ['pytest.allure', 'allure'])
+def test_step_function_decorator(timed_report_for, package):
     report, start, stop = timed_report_for("""
     import pytest
+    import allure
 
-    @pytest.allure.step('step_foo')
+    @%s.step('step_foo')
     def foo(bar):
         return bar
 
     def test_ololo_pewpew():
         assert foo(123)
-    """)
+    """ % package)
 
     assert_that(report.findall('.//test-case/steps/step'), contains(step_with('step_foo', start, stop, Status.PASSED)))
 

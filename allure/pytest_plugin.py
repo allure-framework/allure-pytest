@@ -57,116 +57,119 @@ def pytest_runtest_setup(item):
         pytest.skip("Not running test of severity %s" % severity)
 
 
-def pytest_namespace():
-    class AllureHelper(object):
+class AllureHelper(object):
+    """
+    This object holds various utility methods used from ``pytest.allure`` namespace, like ``pytest.allure.attach``
+    """
+    def __init__(self):
+        self._allurelistener = None  # FIXME: this gets injected elsewhere, like in the pytest_configure
+
+    def attach(self, name, contents, type=AttachmentType.TEXT):  # @ReservedAssignment
         """
-        This object holds various utility methods used from ``pytest.allure`` namespace, like ``pytest.allure.attach``
+        Attaches ``contents`` to a current context with given ``name`` and ``type``.
         """
-        def __init__(self):
-            self._allurelistener = None  # FIXME: this gets injected in the pytest_configure
+        if self._allurelistener:
+            self._allurelistener.attach(name, contents, type)
 
-        def attach(self, name, contents, type=AttachmentType.TEXT):  # @ReservedAssignment
-            """
-            Attaches ``contents`` to a current context with given ``name`` and ``type``.
-            """
-            if self._allurelistener:
-                self._allurelistener.attach(name, contents, type)
+    def severity(self, level):
+        """
+        A decorator factory that returns ``pytest.mark`` for a given allure ``level``.
+        """
+        return pytest.mark.allure_severity(level)
 
-        def severity(self, level):
-            """
-            A decorator factory that returns ``pytest.mark`` for a given allure ``level``.
-            """
-            return pytest.mark.allure_severity(level)
+    def step(self, title):
+        """
+        A contextmanager/decorator for steps.
 
-        def step(self, title):
-            """
-            A contextmanager/decorator for steps.
+        TODO: when moving to python 3, rework this with ``contextlib.ContextDecorator``.
 
-            TODO: when moving to python 3, rework this with ``contextlib.ContextDecorator``.
+        Usage examples::
 
-            Usage examples::
+          import pytest
 
-              import pytest
+          def test_foo():
+             with pytest.allure.step('mystep'):
+                 assert False
 
-              def test_foo():
-                 with pytest.allure.step('mystep'):
-                     assert False
+          @pytest.allure.step('make test data')
+          def make_test_data():
+              raise ValueError('No data today')
 
-              @pytest.allure.step('make test data')
-              def make_test_data():
-                  raise ValueError('No data today')
+          def test_bar():
+              assert make_test_data()
 
-              def test_bar():
-                  assert make_test_data()
+          @pytest.fixture()
+          @pytest.allure.step('test fixture')
+          def steppy_fixture():
+              return 1
 
-              @pytest.fixture()
-              @pytest.allure.step('test fixture')
-              def steppy_fixture():
-                  return 1
+          def test_baz(steppy_fixture):
+              assert steppy_fixture
+        """
+        class StepContext:
+            def __init__(self, allure_helper):
+                self.allure_helper = allure_helper
+                self.step = None
 
-              def test_baz(steppy_fixture):
-                  assert steppy_fixture
-            """
-            class StepContext:
-                def __init__(self, allure_helper):
-                    self.allure_helper = allure_helper
-                    self.step = None
+            @property
+            def allure(self):
+                return self.allure_helper._allurelistener
 
-                @property
-                def allure(self):
-                    return self.allure_helper._allurelistener
+            def __enter__(self):
+                if self.allure:
+                    self.step = self.allure.start_step(title)
 
-                def __enter__(self):
-                    if self.allure:
-                        self.step = self.allure.start_step(title)
-
-                def __exit__(self, exc_type, exc_val, exc_tb):  # @UnusedVariable
-                    if self.allure:
-                        if exc_type is not None:
-                            if exc_type == Skipped:
-                                self.step.status = Status.SKIPPED
-                            else:
-                                self.step.status = Status.FAILED
+            def __exit__(self, exc_type, exc_val, exc_tb):  # @UnusedVariable
+                if self.allure:
+                    if exc_type is not None:
+                        if exc_type == Skipped:
+                            self.step.status = Status.SKIPPED
                         else:
-                            self.step.status = Status.PASSED
-                        self.allure.stop_step()
+                            self.step.status = Status.FAILED
+                    else:
+                        self.step.status = Status.PASSED
+                    self.allure.stop_step()
 
-                def __call__(self, func):
-                    """
-                    Pretend that we are a decorator -- wrap the ``func`` with self.
-                    FIXME: may fail if evil dude will try to reuse ``pytest.allure.step`` instance.
-                    """
-                    @wraps(func)
-                    def impl(*a, **kw):
-                        with self:
-                            return func(*a, **kw)
-                    return impl
+            def __call__(self, func):
+                """
+                Pretend that we are a decorator -- wrap the ``func`` with self.
+                FIXME: may fail if evil dude will try to reuse ``pytest.allure.step`` instance.
+                """
+                @wraps(func)
+                def impl(*a, **kw):
+                    with self:
+                        return func(*a, **kw)
+                return impl
 
-            return StepContext(self)
+        return StepContext(self)
 
-        @property
-        def attach_type(self):
-            return AttachmentType
+    @property
+    def attach_type(self):
+        return AttachmentType
 
-        @property
-        def severity_level(self):
-            return Severity
+    @property
+    def severity_level(self):
+        return Severity
 
-        def __getattr__(self, attr):
-            """
-            Provides fancy shortcuts for severity::
+    def __getattr__(self, attr):
+        """
+        Provides fancy shortcuts for severity::
 
-                # these are the same
-                pytest.allure.CRITICAL
-                pytest.allure.severity(pytest.allure.severity_level.CRITICAL)
+            # these are the same
+            pytest.allure.CRITICAL
+            pytest.allure.severity(pytest.allure.severity_level.CRITICAL)
 
-            """
-            if attr in dir(Severity) and not attr.startswith('_'):
-                return self.severity(getattr(Severity, attr))
-            else:
-                raise AttributeError
+        """
+        if attr in dir(Severity) and not attr.startswith('_'):
+            return self.severity(getattr(Severity, attr))
+        else:
+            raise AttributeError
 
-    return {'allure': AllureHelper()}
+MASTER_HELPER = AllureHelper()
+
+
+def pytest_namespace():
+    return {'allure': MASTER_HELPER}
 
 
 class AllureTestListener(object):
