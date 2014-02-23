@@ -175,16 +175,12 @@ class AllureXML(object):
         self.impl = AllureImpl(logdir)
         self.config = config
 
+        # FIXME: maybe we should write explicit wrappers?
+        self.attach = self.impl.attach
+        self.start_step = self.impl.start_step
+        self.stop_step = self.impl.stop_step
+
         self.testsuite = None
-
-    def attach(self, title, contents, attach_type):
-        return self.impl.attach(title, contents, attach_type)
-
-    def start_step(self, name):
-        return self.impl.start_step(name)
-
-    def stop_step(self):
-        return self.impl.stop_step()
 
     def _get_exception_message(self, report):
         return (getattr(report, 'exception', None) and present_exception(report.exception.value)) \
@@ -213,7 +209,7 @@ class AllureXML(object):
             module = parent_module(item)
 
             self.impl.start_suite(name='.'.join(mangle_testnames(module.nodeid.split("::"))),
-                                       description=module.module.__doc__ or None)
+                                  description=module.module.__doc__ or None)
             self.testsuite = 'Yes'
 
         name = '.'.join(mangle_testnames([x.name for x in parent_down_from_module(item)]))
@@ -224,6 +220,7 @@ class AllureXML(object):
 
         if not nextitem or parent_module(item) != parent_module(nextitem):
             self.impl.stop_suite()
+            self.testsuite = None
 
         return result
 
