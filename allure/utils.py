@@ -218,6 +218,4 @@ def get_exception_message(report):
     """
     get exception message from pytest's internal ``report`` object
     """
-    return (getattr(report, 'exception', None) and present_exception(report.exception.value)) \
-           or (hasattr(report, 'result') and report.result) \
-           or report.outcome
+    return (getattr(report, 'exception', None) and present_exception(report.exception.value)) or (hasattr(report, 'result') and report.result) or report.outcome
