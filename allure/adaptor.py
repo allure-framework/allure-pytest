@@ -1,16 +1,15 @@
 import pytest
+import argparse
 
+from functools import wraps
+from collections import namedtuple
+
+from _pytest.runner import Skipped
 from _pytest.junitxml import mangle_testnames
 
-from allure.constants import Status, \
-    AttachmentType, Severity, FAILED_STATUSES
-from allure.utils import parent_module, parent_down_from_module, \
-    severity_of, all_of, get_exception_message
-from _pytest.runner import Skipped
-from functools import wraps
-import argparse
 from allure.common import AllureImpl
-from collections import namedtuple
+from allure.constants import Status, AttachmentType, Severity, FAILED_STATUSES
+from allure.utils import parent_module, parent_down_from_module, severity_of, all_of, get_exception_message
 
 
 def pytest_addoption(parser):
@@ -171,7 +170,9 @@ def pytest_namespace():
 
 
 class AllureTestListener(object):
-
+    """
+    Listens to pytest hooks to generate reports for common tests.
+    """
     def __init__(self, logdir, config):
         self.impl = AllureImpl(logdir)
         self.config = config
@@ -249,6 +250,10 @@ CollectFail = namedtuple('CollectFail', 'name status message trace')
 
 
 class AllureCollectionListener(object):
+    """
+    Listens to pytest collection-related hooks
+    to generate reports for modules that failed to collect.
+    """
     def __init__(self, logdir):
         self.impl = AllureImpl(logdir)
         self.fails = []
@@ -267,7 +272,7 @@ class AllureCollectionListener(object):
 
     def pytest_collection_finish(self):
         """
-        Writes Collection testsuite only if there were failures.
+        Creates a testsuite with collection failures if there were any.
         """
 
         if self.fails:

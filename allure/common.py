@@ -46,7 +46,7 @@ class AllureImpl(object):
 
     def start_step(self, name):
         """
-        Starts an new :py:class:`allure.structure.TestStep` with given title,
+        Starts an new :py:class:`allure.structure.TestStep` with given ``name``,
         pushes it to the ``self.stack`` and returns the step.
         """
         step = TestStep(name=name,
@@ -66,7 +66,7 @@ class AllureImpl(object):
 
     def start_case(self, name, description=None, severity=Severity.NORMAL):
         """
-        Starts a new :py:class:`allure.structure.TestCase` and pushes it to the ``self.stack``
+        Starts a new :py:class:`allure.structure.TestCase`
         """
         test = TestCase(name=name,
                         description=description,
@@ -78,7 +78,13 @@ class AllureImpl(object):
 
     def stop_case(self, status, message=None, trace=None):
         """
+        :arg status: one of :py:class:`allure.constants.Status`
+        :arg message: error message from the test
+        :arg trace: error trace from the test
+
         Finalizes with important data the test at the top of ``self.stack`` and returns it
+
+        If either ``message`` or ``trace`` are given adds a ``Failure`` object to the test with them.
         """
         test = self.stack[-1]
         test.status = status
@@ -103,14 +109,12 @@ class AllureImpl(object):
 
     def stop_suite(self):
         """
-        Writes currently active testuite and prepares for the next one blanking ``self.testsuite``
+        Stops current test suite and writes it to the file in the report directory
         """
         self.testsuite.stop = now()
 
         with self._reportfile('%s-testsuite.xml' % uuid.uuid4()) as f:
             self._write_suite(f, self.testsuite)
-
-        self.testsuite = None
 
     def _save_attach(self, body, attach_type=AttachmentType.TEXT):
         """
@@ -156,5 +160,4 @@ class AllureImpl(object):
             logfile.close()
 
     def _write_suite(self, logfile, suite):
-        logfile.write('<?xml version="1.0" encoding="utf-8"?>\n')
-        logfile.write(etree.tostring(suite.toxml(), pretty_print=True))
+        logfile.write(etree.tostring(suite.toxml(), pretty_print=True, xml_declaration=True, encoding='utf-8'))
