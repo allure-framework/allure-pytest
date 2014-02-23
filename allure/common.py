@@ -186,4 +186,4 @@ class AllureImpl(object):
             logfile.close()
 
     def _write_suite(self, logfile, suite):
-        logfile.write(etree.tostring(suite.toxml(), pretty_print=True, xml_declaration=True, encoding='utf-8'))
+        logfile.write(etree.tostring(suite.toxml(), pretty_print=True, xml_declaration=False, encoding=unicode))
