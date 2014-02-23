@@ -45,10 +45,10 @@ def pytest_addoption(parser):
 def pytest_configure(config):
     reportdir = config.option.allurereportdir
     if reportdir and not hasattr(config, 'slaveinput'):
-        config._allurexml = AllureTestListener(reportdir, config)
-        config.pluginmanager.register(config._allurexml)
+        config._allurelistener = AllureTestListener(reportdir, config)
+        config.pluginmanager.register(config._allurelistener)
         config.pluginmanager.register(AllureCollectionListener(reportdir))
-        pytest.allure._allurexml = config._allurexml  # FIXME: maybe we need a different injection mechanism
+        pytest.allure._allurelistener = config._allurelistener  # FIXME: maybe we need a different injection mechanism
 
 
 def pytest_runtest_setup(item):
@@ -63,14 +63,14 @@ def pytest_namespace():
         This object holds various utility methods used from ``pytest.allure`` namespace, like ``pytest.allure.attach``
         """
         def __init__(self):
-            self._allurexml = None  # FIXME: this gets injected in the pytest_configure
+            self._allurelistener = None  # FIXME: this gets injected in the pytest_configure
 
         def attach(self, name, contents, type=AttachmentType.TEXT):  # @ReservedAssignment
             """
             Attaches ``contents`` to a current context with given ``name`` and ``type``.
             """
-            if self._allurexml:
-                self._allurexml.attach(name, contents, type)
+            if self._allurelistener:
+                self._allurelistener.attach(name, contents, type)
 
         def severity(self, level):
             """
@@ -114,7 +114,7 @@ def pytest_namespace():
 
                 @property
                 def allure(self):
-                    return self.allure_helper._allurexml
+                    return self.allure_helper._allurelistener
 
                 def __enter__(self):
                     if self.allure:

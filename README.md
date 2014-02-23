@@ -89,3 +89,8 @@ class TestBar:
 ```
 py.test my_tests/ --allure_severities=critical,blocker
 ```
+
+
+### Extention
+
+Для использования в других фреймворках выделен класс `allure.common.AllureImpl`, облегчающая создание привязок.

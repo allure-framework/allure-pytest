@@ -16,6 +16,32 @@ from allure.structure import Attach, TestStep, TestCase, TestSuite, Failure
 
 
 class AllureImpl(object):
+    """
+    Allure test-flow implementation that handles test data creation.
+    Devised to be used as base layer for allure adaptation to arbitrary test frameworks.
+
+    Has a SAX-like API -- methods to start or stop a ``TestSuite``, ``TestCase``, ``TestStep`` or to create an ``Attachment``.
+
+    Warning::
+      Violation of the call order may result in ill-formed allure XML that wont pass schema validation and render into a report.
+
+    Calls should conform to a rule: A *suite* holds *cases*, a *case* holds *steps*, a *step* holds other *steps*.
+    *case* and *step* can have as much *attachments* as they want.
+
+    Therefore, basic call order is as follows::
+      allure = AllureImpl('./reports')  # this clears ./reports
+
+      allure.star_suite('demo')
+      allure.start_case('test_one')
+      allure.stop_case(Status.PASSED)
+      allure.start_case('test_two')
+      allure.start_step('a demo step')
+      allure.attach('some file', 'a quick brown fox..', AttachmentType.TEXT)
+      allure.stop_step()
+      allure.stop_case(Status.FAILED, 'failed for demo', 'stack trace goes here')
+      allure.stop_suite()  # this writes XML into ./reports
+
+    """
 
     def __init__(self, logdir):
         self.logdir = os.path.normpath(os.path.abspath(os.path.expanduser(os.path.expandvars(logdir))))
