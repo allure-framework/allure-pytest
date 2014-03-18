@@ -14,13 +14,15 @@ from allure.constants import AttachmentType
 from allure.utils import all_of
 
 
-def test_smoke(report_for):
+@pytest.mark.parametrize('package', ['pytest.allure', 'allure'])
+def test_smoke(report_for, package):
     report = report_for("""
-    from pytest import allure as A
+    import pytest
+    import allure
 
     def test_x():
-        A.attach('Foo', 'Bar', A.attach_type.TEXT)
-    """)
+        %s.attach('Foo', 'Bar')
+    """ % package)
 
     assert_that(report.findall('test-cases/test-case/attachments/attachment'), contains(has_property('attrib', has_entries(title='Foo'))))
 
