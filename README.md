@@ -23,10 +23,10 @@ pytest_plugins = 'allure.pytest_plugin',\
 Для того, чтобы сохранить что-нибудь в тесте:
 
 ```python
-import pytest
+import allure
 
 def test_foo():
-    pytest.allure.attach('my attach', 'Hello, World')
+    allure.attach('my attach', 'Hello, World')
 ```
 
 #### Steps
