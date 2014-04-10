@@ -44,17 +44,25 @@ def test_foo():
         # do more stuff
 ```
 
-Работает и как декоратор:
+Работает и как декоратор.
+По умолчанию название степа - это имя декорируемого метода
 
 ```python
 import pytest
 
-@pytest.allure.step('data')
-def make_some_data():
+@pytest.allure.step
+def make_test_data_foo():
     # do stuff
 
 def test_foo():
-    assert make_some_data() is not None
+    assert make_some_data_foo() is not None
+
+@pytest.allure.step('make_some_data_foo')
+def make_some_data_bar():
+    # do another stuff
+
+def test_bar():
+    assert make_some_data_bar() is not None
 ```
 
 При необходимости использования step'ов в коде, который нужен и без pytest, вместо ```pytest.allure.step``` можно использовать ```allure.step```:
