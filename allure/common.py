@@ -3,16 +3,51 @@ Created on Feb 23, 2014
 
 @author: pupssman
 """
+from contextlib import contextmanager
+from functools import wraps
 import os
-import py
 import uuid
 
+from _pytest.runner import Skipped
 from lxml import etree
-from contextlib import contextmanager
+import py
 
-from allure.utils import now
-from allure.constants import AttachmentType, Severity
+from allure.constants import AttachmentType, Severity, Status
 from allure.structure import Attach, TestStep, TestCase, TestSuite, Failure
+from allure.utils import now
+
+
+class StepContext:
+    def __init__(self, allure, title):
+        self.allure = allure
+        self.title = title
+        self.step = None
+
+    def __enter__(self):
+        if self.allure:
+            self.step = self.allure.start_step(self.title)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):  # @UnusedVariable
+        if self.allure:
+            if exc_type is not None:
+                if exc_type == Skipped:
+                    self.step.status = Status.SKIPPED
+                else:
+                    self.step.status = Status.FAILED
+            else:
+                self.step.status = Status.PASSED
+            self.allure.stop_step()
+
+    def __call__(self, func):
+        """
+        Pretend that we are a decorator -- wrap the ``func`` with self.
+        FIXME: may fail if evil dude will try to reuse ``pytest.allure.step`` instance.
+        """
+        @wraps(func)
+        def impl(*a, **kw):
+            with self:
+                return func(*a, **kw)
+        return impl
 
 
 class AllureImpl(object):

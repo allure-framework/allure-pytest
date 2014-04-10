@@ -1,13 +1,10 @@
-import pytest
 import argparse
-
-from functools import wraps
 from collections import namedtuple
 
-from _pytest.runner import Skipped
 from _pytest.junitxml import mangle_testnames
+import pytest
 
-from allure.common import AllureImpl
+from allure.common import AllureImpl, StepContext
 from allure.constants import Status, AttachmentType, Severity, FAILED_STATUSES
 from allure.utils import parent_module, parent_down_from_module, severity_of, all_of, get_exception_message
 
@@ -92,11 +89,18 @@ class AllureHelper(object):
                  assert False
 
           @pytest.allure.step('make test data')
-          def make_test_data():
+          def make_test_data_bar():
               raise ValueError('No data today')
 
           def test_bar():
-              assert make_test_data()
+              assert make_test_data_bar()
+
+          @pytest.allure.step
+          def make_test_data_baz():
+              raise ValueError('No data today')
+
+          def test_baz():
+              assert make_test_data_baz()
 
           @pytest.fixture()
           @pytest.allure.step('test fixture')
@@ -106,42 +110,10 @@ class AllureHelper(object):
           def test_baz(steppy_fixture):
               assert steppy_fixture
         """
-        class StepContext:
-            def __init__(self, allure_helper):
-                self.allure_helper = allure_helper
-                self.step = None
-
-            @property
-            def allure(self):
-                return self.allure_helper._allurelistener
-
-            def __enter__(self):
-                if self.allure:
-                    self.step = self.allure.start_step(title)
-
-            def __exit__(self, exc_type, exc_val, exc_tb):  # @UnusedVariable
-                if self.allure:
-                    if exc_type is not None:
-                        if exc_type == Skipped:
-                            self.step.status = Status.SKIPPED
-                        else:
-                            self.step.status = Status.FAILED
-                    else:
-                        self.step.status = Status.PASSED
-                    self.allure.stop_step()
-
-            def __call__(self, func):
-                """
-                Pretend that we are a decorator -- wrap the ``func`` with self.
-                FIXME: may fail if evil dude will try to reuse ``pytest.allure.step`` instance.
-                """
-                @wraps(func)
-                def impl(*a, **kw):
-                    with self:
-                        return func(*a, **kw)
-                return impl
-
-        return StepContext(self)
+        if callable(title):
+            return StepContext(self._allurelistener, title.__name__)(title)
+        else:
+            return StepContext(self._allurelistener, title)
 
     @property
     def attach_type(self):
@@ -237,7 +209,7 @@ class AllureTestListener(object):
         elif report.skipped:
                 self._stop_case(report, status=Status.SKIPPED)
 
-    def pytest_runtest_makereport(self, item, call, __multicall__):
+    def pytest_runtest_makereport(self, item, call, __multicall__):  # @UnusedVariable
         """
         That's the place we inject extra data into the report object from the actual Item.
         """

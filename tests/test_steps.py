@@ -132,6 +132,23 @@ def test_step_function_decorator(timed_report_for, package):
     assert_that(report.findall('.//test-case/steps/step'), contains(step_with('step_foo', start, stop, Status.PASSED)))
 
 
+@pytest.mark.parametrize('statement, expected_name', [('("ololo")', 'ololo'), ('', 'foo')])
+def test_step_function_default_name(timed_report_for, statement, expected_name):
+    report, start, stop = timed_report_for("""
+    import pytest
+    import allure
+
+    @allure.step%s
+    def foo(bar):
+        return bar
+
+    def test_ololo_pewpew():
+        assert foo(123)
+    """ % statement)
+
+    assert_that(report.findall('.//test-case/steps/step'), contains(step_with(expected_name, start, stop, Status.PASSED)))
+
+
 def test_step_fixture_decorator(timed_report_for):
     report, start, stop = timed_report_for("""
     import pytest
