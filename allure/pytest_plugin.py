@@ -23,7 +23,7 @@ def pytest_addoption(parser):
         entries = [x.strip() for x in string.split(',')]
 
         for entry in entries:
-            if not entry in severities:
+            if entry not in severities:
                 raise argparse.ArgumentTypeError('Illegal severity value [%s], only values from [%s] are allowed.' % (entry, ', '.join(severities)))
 
         return entries
