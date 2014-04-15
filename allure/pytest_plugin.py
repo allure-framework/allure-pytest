@@ -220,6 +220,11 @@ class AllureTestListener(object):
             result=self.config.hook.pytest_report_teststatus(report=report)[0])  # get the failed/passed/xpassed thingy
         return report
 
+    def pytest_sessionfinish(self):
+        if self.testsuite:
+            self.impl.stop_suite()
+            self.testsuite = None
+
 
 CollectFail = namedtuple('CollectFail', 'name status message trace')
 
