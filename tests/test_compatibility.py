@@ -9,9 +9,9 @@ Created on Apr 15, 2014
 from hamcrest import assert_that, contains, has_property
 
 
-def test_xfail(report_for):
+def test_maxfail(report_for):
     """
-    Check that xfail generates proper report
+    Check that maxfail generates proper report
     """
     report = report_for("""
     def test_a():
