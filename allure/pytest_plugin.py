@@ -115,6 +115,14 @@ class AllureHelper(object):
         else:
             return StepContext(self._allurelistener, title)
 
+    def single_step(self, text):
+        """
+        Writes single line to report.
+        """
+        if self._allurelistener:
+            self._allurelistener.start_step(text)
+            self._allurelistener.stop_step()
+
     @property
     def attach_type(self):
         return AttachmentType

@@ -54,6 +54,24 @@ def test_one_step(timed_report_for, status, expr):
                                                                               status=status)))
 
 
+@pytest.mark.parametrize('status,expr', [(Status.PASSED, 'assert True'),
+                                           (Status.FAILED, 'assert False'),
+                                           (Status.SKIPPED, 'pytest.skip("foo")')])
+def test_single_step(timed_report_for, status, expr):
+    report, start, stop = timed_report_for("""
+    import pytest
+    def test_ololo_pewpew():
+         pytest.allure.single_step(text='single_step')
+         %s
+    """ % expr)
+
+    assert_that(report.findall('.//test-case/steps/step'),
+                contains(step_with(name='single_step',
+                                   start=start,
+                                   stop=stop,
+                                   status=status)))
+
+
 def test_two_steps(timed_report_for):
     report, start, stop = timed_report_for("""
     import pytest
