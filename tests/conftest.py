@@ -31,7 +31,7 @@ def reports_for(testdir, reportdir, schema):
     parses all the XML, validates them against ``schema`` and
     :returns list of :py:module:`lxml.objectify`-parsed reports
     """
-    def impl(body='', extra_run_args=[], **kw):
+    def impl(body='', extra_run_args=[], extra_plugins=(), **kw):
         testdir.makeconftest("""
         import sys
 
@@ -42,8 +42,9 @@ def reports_for(testdir, reportdir, schema):
 
         sys.path.insert(0, '%s')
 
-        pytest_plugins = 'allure.adaptor',
-        """ % os.path.dirname(os.path.dirname(allure.__file__)))
+        pytest_plugins = [%s]
+        """ % (os.path.dirname(os.path.dirname(allure.__file__)),
+               ", ".join(map(lambda p: "'{0}'".format(p), list(extra_plugins) + ['allure.adaptor']))))
         testdir.makepyfile(body, **kw)
 
         resultpath = str(reportdir)
