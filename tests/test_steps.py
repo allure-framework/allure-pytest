@@ -85,6 +85,17 @@ def test_fixture_step(timed_report_for):
     assert_that(report.findall('.//test-case/steps/step'), contains(step_with('fixture', start, stop, Status.PASSED)))
 
 
+def test_other_module_fixture_step(timed_report_for):
+    report, start, stop = timed_report_for("""
+    import pytest
+
+    def test_other_module_fixture(allure_test_fixture):
+        allure_test_fixture.test()
+    """, extra_plugins=['tests.libs.util_fixture'])
+
+    assert_that(report.findall('.//test-case/steps/step'), contains(step_with('allure_test_fixture_step', start, stop, Status.PASSED)))
+
+
 def test_nested_steps(timed_report_for):
     report, start, stop = timed_report_for("""
     import pytest

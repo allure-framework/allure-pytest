@@ -54,12 +54,26 @@ def pytest_runtest_setup(item):
         pytest.skip("Not running test of severity %s" % severity)
 
 
+class DefaultStepContext(StepContext):
+    def __init__(self, allure_helper, title):
+        self.allure_helper = allure_helper
+        self.title = title
+        self.step = None
+
+    @property
+    def allure(self):
+        return self.allure_helper.get_listener()
+
+
 class AllureHelper(object):
     """
     This object holds various utility methods used from ``pytest.allure`` namespace, like ``pytest.allure.attach``
     """
     def __init__(self):
         self._allurelistener = None  # FIXME: this gets injected elsewhere, like in the pytest_configure
+
+    def get_listener(self):
+        return self._allurelistener
 
     def attach(self, name, contents, type=AttachmentType.TEXT):  # @ReservedAssignment
         """
@@ -111,9 +125,9 @@ class AllureHelper(object):
               assert steppy_fixture
         """
         if callable(title):
-            return StepContext(self._allurelistener, title.__name__)(title)
+            return DefaultStepContext(self, title.__name__)(title)
         else:
-            return StepContext(self._allurelistener, title)
+            return DefaultStepContext(self, title)
 
     @property
     def attach_type(self):
