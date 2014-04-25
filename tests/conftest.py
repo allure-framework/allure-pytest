@@ -44,7 +44,7 @@ def reports_for(testdir, reportdir, schema):
 
         pytest_plugins = [%s]
         """ % (os.path.dirname(os.path.dirname(allure.__file__)),
-               ", ".join(["'" + plugin + "'" for plugin in extra_plugins if extra_plugins] + ["'allure.adaptor'"])))
+               ", ".join(map(lambda p: "'{0}'".format(p), list(extra_plugins) + ['allure.adaptor']))))
         testdir.makepyfile(body, **kw)
 
         resultpath = str(reportdir)

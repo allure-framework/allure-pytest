@@ -54,7 +54,11 @@ def pytest_runtest_setup(item):
         pytest.skip("Not running test of severity %s" % severity)
 
 
-class DefaultStepContext(StepContext):
+class LazyInitStepContext(StepContext):
+    """
+    This is a step context used for decorated steps.
+    It provides a possibility to create step decorators, being initiated before pytest_configure, when no AllureListener initiated yet.
+    """
     def __init__(self, allure_helper, title):
         self.allure_helper = allure_helper
         self.title = title
@@ -125,9 +129,9 @@ class AllureHelper(object):
               assert steppy_fixture
         """
         if callable(title):
-            return DefaultStepContext(self, title.__name__)(title)
+            return LazyInitStepContext(self, title.__name__)(title)
         else:
-            return DefaultStepContext(self, title)
+            return LazyInitStepContext(self, title)
 
     @property
     def attach_type(self):

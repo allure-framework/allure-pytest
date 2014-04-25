@@ -4,6 +4,11 @@ import allure
 
 @pytest.fixture(scope='session')
 def allure_test_fixture():
+    '''
+    This is a fixture used by test checking lazy initialization of steps context.
+    It must be in a separate module, to be initialized before pytest configure stage.
+    Don't move it to tests code.
+    '''
     return allure_test_fixture_impl()
 
 
