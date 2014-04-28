@@ -120,7 +120,8 @@ class AllureHelper(object):
         Writes single line to report.
         """
         if self._allurelistener:
-            self._allurelistener.start_step(text)
+            step = self._allurelistener.start_step(text)
+            step.status = Status.PASSED
             self._allurelistener.stop_step()
 
     @property
