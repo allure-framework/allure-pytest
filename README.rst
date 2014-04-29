@@ -13,6 +13,7 @@ Allure-Pytest-Adaptor
 Usage
 =====
 .. code:: python
+
  py.test --alluredir [path_to_report_dir]
 
 
