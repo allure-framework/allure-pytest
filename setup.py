@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 PACKAGE = "pytest-allure-adaptor"
-VERSION = "1.3.4"
+VERSION = "1.3.7"
 
 import os
 from setuptools import setup
@@ -19,10 +19,9 @@ setup(
     author_email="pupssman@yandex-team.ru",
     packages=["allure", "allure.contrib"],
     url="https://github.com/allure-framework/allure-python",
-    long_description=read('README.md'),
+    long_description=read('README.rst'),
     entry_points={'pytest11': ['allure_adaptor = allure.pytest_plugin']},
     install_requires=[
         "lxml>=3.2.0",
-        "pytest>=2.4.1",
-        "PyHamcrest"]
+        "pytest>=2.4.1"]
 )
