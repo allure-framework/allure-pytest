@@ -8,7 +8,7 @@ Allure-Pytest-Adaptor
         :alt: Downloads
         :target: https://pypi.python.org/pypi/pytest-allure-adaptor
 
-Плагин для `py.test` который может генерировать отчеты в удобочитаемом виде для `allure-report`
+Плагин для ``py.test`` который может генерировать отчеты в удобочитаемом виде для ``allure-report``
 
 Usage
 =====
@@ -16,9 +16,10 @@ Usage
  py.test --alluredir [path_to_report_dir]
 
 
-Плагин автоматически подключается к py.test через entry point, если установлен.
+Плагин автоматически подключается к ``py.test`` через ``entry point``, если установлен.
 
 Подключение плагина в IDE:
+
 .. code:: python
 
  pytest_plugins = 'allure.pytest_plugin',\
@@ -27,7 +28,7 @@ Usage
 Advanced usage
 ==============
 
-В плагине есть возможность генерировать данные сверх того, что делает pytest.
+В плагине есть возможность генерировать данные сверх того, что делает ``pytest``.
 
 Attachments
 ===========
@@ -81,7 +82,7 @@ Steps
      assert make_some_data_bar() is not None
 
 
-При необходимости использования step'ов в коде, который нужен и без pytest, вместо ```pytest.allure.step``` можно использовать ```allure.step```:
+При необходимости использования step'ов в коде, который нужен и без pytest, вместо ``pytest.allure.step`` можно использовать ``allure.step``:
 
 .. code:: python
 
@@ -123,6 +124,7 @@ Severity
 
 
 Чтобы запустить тесты только определенных приоритетов:
+
 .. code
 
  py.test my_tests/ --allure_severities=critical,blocker
@@ -132,4 +134,4 @@ Severity
 Extention
 =========
 
-Для использования в других фреймворках выделен класс `allure.common.AllureImpl`, облегчающий создание привязок.
+Для использования в других фреймворках выделен класс ``allure.common.AllureImpl``, облегчающий создание привязок.
