@@ -125,10 +125,9 @@ Severity
 
 Чтобы запустить тесты только определенных приоритетов:
 
-.. code
+.. code:: rest
 
  py.test my_tests/ --allure_severities=critical,blocker
-
 
 
 Extention
