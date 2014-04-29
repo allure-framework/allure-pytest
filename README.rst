@@ -20,6 +20,7 @@ Usage
 
 Подключение плагина в IDE:
 .. code:: python
+
  pytest_plugins = 'allure.pytest_plugin',\
 
 
@@ -34,6 +35,7 @@ Attachments
 Для того, чтобы сохранить что-нибудь в тесте:
 
 .. code:: python
+
  import allure
 
  def test_foo():
@@ -46,6 +48,7 @@ Steps
 Для того, чтобы побить тест на шаги:
 
 .. code:: python
+
  import pytest
 
  def test_foo():
@@ -60,6 +63,7 @@ Steps
 По умолчанию название степа - это имя декорируемого метода
 
 .. code:: python
+
  import pytest
 
  @pytest.allure.step
@@ -80,6 +84,7 @@ Steps
 При необходимости использования step'ов в коде, который нужен и без pytest, вместо ```pytest.allure.step``` можно использовать ```allure.step```:
 
 .. code:: python
+
  import allure
 
  @allure.step('some operation')
@@ -96,6 +101,7 @@ Severity
 Для тестов, модулей и классов можно задавать приоритеты:
 
 .. code:: python
+
  import pytest
 
  @pytest.allure.severity(pytest.allure.severity_level.MINOR)
@@ -118,6 +124,7 @@ Severity
 
 Чтобы запустить тесты только определенных приоритетов:
 .. code
+
  py.test my_tests/ --allure_severities=critical,blocker
 
 
