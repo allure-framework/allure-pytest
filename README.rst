@@ -15,6 +15,7 @@ Usage
 .. code:: python
 
  py.test --alluredir [path_to_report_dir]
+ # WARNING [path_to_report_dir] will be purged at first run
 
 
 Плагин автоматически подключается к ``py.test`` через ``entry point``, если установлен.
