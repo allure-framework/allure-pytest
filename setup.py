@@ -23,6 +23,5 @@ setup(
     entry_points={'pytest11': ['allure_adaptor = allure.pytest_plugin']},
     install_requires=[
         "lxml>=3.2.0",
-        "pytest>=2.4.1",
-        "pyhamcrest>=1.8.0"]
+        "pytest>=2.4.1"]
 )

@@ -54,6 +54,20 @@ def test_one_step(timed_report_for, status, expr):
                                                                               status=status)))
 
 
+def test_single_step(timed_report_for):
+    report, start, stop = timed_report_for("""
+    import pytest
+    def test_ololo_pewpew():
+         pytest.allure.single_step(text='single_step')
+    """)
+
+    assert_that(report.findall('.//test-case/steps/step'),
+                contains(step_with(name='single_step',
+                                   start=start,
+                                   stop=stop,
+                                   status=Status.PASSED)))
+
+
 def test_two_steps(timed_report_for):
     report, start, stop = timed_report_for("""
     import pytest

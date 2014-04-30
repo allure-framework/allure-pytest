@@ -133,6 +133,14 @@ class AllureHelper(object):
         else:
             return LazyInitStepContext(self, title)
 
+    def single_step(self, text):
+        """
+        Writes single line to report.
+        """
+        if self._allurelistener:
+            with self.step(text):
+                pass
+
     @property
     def attach_type(self):
         return AttachmentType
