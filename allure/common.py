@@ -10,6 +10,7 @@ import uuid
 
 from _pytest.runner import Skipped
 from lxml import etree
+from docutils.nodes import title
 import py
 
 from allure.constants import AttachmentType, Severity, Status
@@ -111,6 +112,7 @@ class AllureImpl(object):
         pushes it to the ``self.stack`` and returns the step.
         """
         step = TestStep(name=name,
+                        title=name,
                         start=now(),
                         attachments=[],
                         steps=[])
