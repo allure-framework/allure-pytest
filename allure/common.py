@@ -10,7 +10,6 @@ import uuid
 
 from _pytest.runner import Skipped
 from lxml import etree
-from docutils.nodes import title
 import py
 
 from allure.constants import AttachmentType, Severity, Status
