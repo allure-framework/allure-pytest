@@ -111,6 +111,7 @@ class AllureImpl(object):
         pushes it to the ``self.stack`` and returns the step.
         """
         step = TestStep(name=name,
+                        title=name,
                         start=now(),
                         attachments=[],
                         steps=[])

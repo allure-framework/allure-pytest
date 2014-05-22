@@ -19,6 +19,7 @@ import pytest
 
 def step_with(name, start, stop, status):
     return has_properties(name=name,
+                          title=name,
                           attrib=all_of(
                                         has_entry('start', has_float(greater_than_or_equal_to(start))),
                                         has_entry('stop', has_float(less_than_or_equal_to(stop))),
