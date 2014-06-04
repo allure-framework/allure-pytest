@@ -95,7 +95,7 @@ def test_xfail(report_for):
         assert False
     """)
 
-    assert_that(report, has_error(message='skipped',
+    assert_that(report, has_error(message='ololo',
                                   trace='ololo'))
 
 
@@ -107,5 +107,17 @@ def test_skip(report_for):
         pytest.skip('ololo')
     """)
 
-    assert_that(report, has_error(message='skipped',
+    assert_that(report, has_error(message='Skipped: ololo',
                                   trace='Skipped: ololo'))
+
+
+def test_skip_long(report_for):
+    report = report_for("""
+    import pytest
+
+    def test_Y():
+        pytest.skip('ololo' * 16 + '!')
+    """)
+
+    assert_that(report, has_error(message='Skipped: ' + 'ololo' * 16 + '...',
+                                  trace='Skipped: ' + 'ololo' * 16 + '!'))

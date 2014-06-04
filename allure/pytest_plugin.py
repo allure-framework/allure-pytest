@@ -196,10 +196,15 @@ class AllureTestListener(object):
                                 message=get_exception_message(report),
                                 trace=report.longrepr or report.wasxfail)
         elif status == Status.SKIPPED:
+            skip_message = type(report.longrepr) == tuple and \
+                report.longrepr[2] or report.wasxfail
+            trim_msg_len = 89
+
             # FIXME: see pytest.runner.pytest_runtest_makereport
             self.impl.stop_case(status,
-                                message='skipped',
-                                trace=type(report.longrepr) == tuple and report.longrepr[2] or report.wasxfail)
+                                message=(skip_message[:trim_msg_len] + '...' *
+                                         (len(skip_message) > trim_msg_len)),
+                                trace=skip_message)
         else:
             self.impl.stop_case(status)
 
