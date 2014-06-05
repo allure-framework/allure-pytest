@@ -96,7 +96,7 @@ def test_xfail(report_for):
     """)
 
     assert_that(report, has_error(message='ololo',
-                                  trace='ololo'))
+                                  trace=''))
 
 
 def test_skip(report_for):
@@ -108,7 +108,7 @@ def test_skip(report_for):
     """)
 
     assert_that(report, has_error(message='Skipped: ololo',
-                                  trace='Skipped: ololo'))
+                                  trace=''))
 
 
 def test_skip_long(report_for):
