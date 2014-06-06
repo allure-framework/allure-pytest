@@ -135,6 +135,28 @@ Severity
 Features & Stories
 ========
 
+Также для тестов и классов можно задавать feature и story:
+
+.. code:: python
+
+ import pytest
+
+
+ @pytest.allure.feature('Feature1)
+ @pytest.allure.story('Story1)
+ def test_minor():
+     assert False
+
+
+ @pytest.allure.feature('Feature2)
+ @pytest.allure.story('Story2)
+ class TestBar:
+
+     # will have 'Feature2 and Story2'
+     def test_bar(self):
+         pass
+
+
 Чтобы запустить тесты только определенных Feature и Story (story без feature указывать нельзя, все тесты будут пропущены):
 
 .. code:: rest
