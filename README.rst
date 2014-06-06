@@ -132,6 +132,18 @@ Severity
  py.test my_tests/ --allure_severities=critical,blocker
 
 
+Features & Stories
+========
+
+Чтобы запустить тесты только определенных Feature и Story (story без feature указывать нельзя, все тесты будут пропущены):
+
+.. code:: rest
+
+ py.test my_tests/ --allure_features=feature1,feature2
+ py.test my_tests/ --allure_features=feature1,feature2 --allure_stories=story1,story2
+
+
+
 Extention
 =========
 

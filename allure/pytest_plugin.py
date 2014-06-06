@@ -5,8 +5,11 @@ from _pytest.junitxml import mangle_testnames
 import pytest
 
 from allure.common import AllureImpl, StepContext
-from allure.constants import Status, AttachmentType, Severity, FAILED_STATUSES
-from allure.utils import parent_module, parent_down_from_module, severity_of, all_of, get_exception_message
+from allure.constants import Status, AttachmentType, Severity, \
+    FAILED_STATUSES, Labels
+from allure.utils import parent_module, parent_down_from_module, severity_of, \
+    labels_of, all_of, get_exception_message
+from allure.structure import Label
 
 
 def pytest_addoption(parser):
@@ -38,6 +41,22 @@ def pytest_addoption(parser):
                                          Tests only with these severities will be run.
                                          Possible values are:%s.""" % ', '.join(severities))
 
+    parser.getgroup("general").addoption('--allure_features',
+                                         action="store",
+                                         dest="allurefeatures",
+                                         metavar="FEATURES_LIST",
+                                         default=None,
+                                         help="""Comma-separated list of feature names.
+                                         Tests only with these feature names will be run.""")
+
+    parser.getgroup("general").addoption('--allure_stories',
+                                         action="store",
+                                         dest="allurestories",
+                                         metavar="STORIES_LIST",
+                                         default=None,
+                                         help="""Comma-separated list of story names.
+                                         Tests only with these story names will be run.""")
+
 
 def pytest_configure(config):
     reportdir = config.option.allurereportdir
@@ -50,8 +69,36 @@ def pytest_configure(config):
 
 def pytest_runtest_setup(item):
     severity = severity_of(item)
-    if item.config.getoption('--allure_severities') and severity not in item.config.getoption('--allure_severities'):
-        pytest.skip("Not running test of severity %s" % severity)
+    item_labels = labels_of(item)
+    feature_labels = \
+        [label[1] for label in item_labels if label[0] == Labels.FEATURE]
+    story_labels = \
+        [label[1] for label in item_labels if label[0] == Labels.STORY]
+
+    if item.config.option.allureseverities and severity not in \
+            item.config.option.allureseverities:
+        pytest.skip("Not running test of severity %s." % severity)
+
+    allure_features = \
+        [x.strip() for x in item.config.option.allurefeatures.split(',')] if \
+        item.config.option.allurefeatures else []
+    allure_stories = \
+        [x.strip() for x in item.config.option.allurestories.split(',')] if \
+        item.config.option.allurestories else []
+
+    if allure_features:
+        if not all([True if allure_feature in feature_labels else False for
+                    allure_feature in allure_features]):
+            pytest.skip('Not suitable with features "%s".' % allure_features)
+
+        if allure_stories and not \
+                all([True if allure_story in story_labels else False for
+                     allure_story in allure_stories]):
+            pytest.skip('Not suitable with stories "%s".' % allure_stories)
+
+    elif allure_stories:
+        pytest.skip('Not suitable. Only stories "%s" without features were '
+                    'specified.' % allure_stories)
 
 
 class LazyInitStepContext(StepContext):
@@ -91,6 +138,20 @@ class AllureHelper(object):
         A decorator factory that returns ``pytest.mark`` for a given allure ``level``.
         """
         return pytest.mark.allure_severity(level)
+
+    def feature(self, *args):
+        """
+        A decorator factory that returns ``pytest.mark`` for a given features.
+        """
+
+        return pytest.mark.feature(*args)
+
+    def story(self, *args):
+        """
+        A decorator factory that returns ``pytest.mark`` for a given stories.
+        """
+
+        return pytest.mark.story(*args)
 
     def step(self, title):
         """
@@ -206,15 +267,15 @@ class AllureTestListener(object):
     def pytest_runtest_protocol(self, __multicall__, item, nextitem):
         if not self.testsuite:
             module = parent_module(item)
-
             self.impl.start_suite(name='.'.join(mangle_testnames(module.nodeid.split("::"))),
                                   description=module.module.__doc__ or None)
             self.testsuite = 'Yes'
 
         name = '.'.join(mangle_testnames([x.name for x in parent_down_from_module(item)]))
+        item_labels = [Label(name=label[0], value=label[1]) for label in labels_of(item)]
 
-        self.impl.start_case(name, description=item.function.__doc__, severity=severity_of(item))
-
+        self.impl.start_case(name, description=item.function.__doc__, severity=severity_of(item),
+                             labels=item_labels)
         result = __multicall__.execute()
 
         if not nextitem or parent_module(item) != parent_module(nextitem):

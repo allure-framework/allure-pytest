@@ -20,7 +20,7 @@ from traceback import format_exception_only
 from _pytest.python import Module
 
 from allure.contrib.recordtype import recordtype
-from allure.constants import Severity
+from allure.constants import Severity, Labels
 
 
 def element_maker(name, namespace):
@@ -179,6 +179,20 @@ def severity_of(item):
         return severity_marker.args[0]
     else:
         return Severity.NORMAL
+
+
+def labels_of(item):
+    """
+    Returns list of name-value pairs for labels.
+    """
+    features = item.get_marker(Labels.FEATURE)
+    stories = item.get_marker(Labels.STORY)
+
+    labels = list()
+    labels.extend([(Labels.FEATURE, feature) for feature in (features.args if features else ())])
+    labels.extend([(Labels.STORY, story) for story in (stories.args if stories else ())])
+
+    return labels
 
 
 def all_of(enum):

@@ -36,3 +36,8 @@ class AttachmentType:
 
 
 ALLURE_NAMESPACE = "urn:model.allure.qatools.yandex.ru"
+
+
+class Labels:
+    FEATURE = 'feature'
+    STORY = 'story'

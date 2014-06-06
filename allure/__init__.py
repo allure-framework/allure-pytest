@@ -5,3 +5,5 @@ from allure.pytest_plugin import MASTER_HELPER
 step = MASTER_HELPER.step
 attach = MASTER_HELPER.attach
 single_step = MASTER_HELPER.single_step
+feature = MASTER_HELPER.feature
+story = MASTER_HELPER.story
