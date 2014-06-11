@@ -153,7 +153,7 @@ class AllureImpl(object):
         test.stop = now()
 
         if message or trace:
-            test.failure = Failure(message=message, trace=trace)
+            test.failure = Failure(message=message, trace=trace or '')
 
         self.testsuite.tests.append(test)
 
