@@ -139,17 +139,17 @@ Features & Stories
 
 .. code:: python
 
- import pytest
+ import allure
 
 
- @pytest.allure.feature('Feature1)
- @pytest.allure.story('Story1)
+ @allure.feature('Feature1')
+ @allure.story('Story1')
  def test_minor():
      assert False
 
 
- @pytest.allure.feature('Feature2)
- @pytest.allure.story('Story2)
+ @allure.feature('Feature2')
+ @allure.story('Story2')
  class TestBar:
 
      # will have 'Feature2 and Story2'
