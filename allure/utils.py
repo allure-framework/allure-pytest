@@ -211,7 +211,7 @@ def present_exception(e):
     if not isinstance(e, SyntaxError):
         return unicodify('%s: %s' % (type(e).__name__, unicodify(e)))
     else:
-        return unicodify(format_exception_only(e))
+        return unicodify(format_exception_only(SyntaxError, e))
 
 
 def get_exception_message(report):
