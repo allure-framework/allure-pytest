@@ -1,4 +1,4 @@
-Allure-Pytest-Adaptor
+Allure Pytest Adaptor
 =====================
 
 .. image:: https://pypip.in/v/pytest-allure-adaptor/badge.png
@@ -8,7 +8,7 @@ Allure-Pytest-Adaptor
         :alt: Downloads
         :target: https://pypi.python.org/pypi/pytest-allure-adaptor
 
-Плагин для ``py.test`` который может генерировать отчеты в удобочитаемом виде для ``allure-report``
+This repository contains a plugin for ``py.test`` which automatically prepares input data used to generate ``Allure Report``.
 
 Usage
 =====
@@ -18,9 +18,9 @@ Usage
  # WARNING [path_to_report_dir] will be purged at first run
 
 
-Плагин автоматически подключается к ``py.test`` через ``entry point``, если установлен.
+This plugin gets automatically connected to ``py.test`` via ``entry point`` if installed.
 
-Подключение плагина в IDE:
+Connecting to IDE:
 
 .. code:: python
 
@@ -30,12 +30,10 @@ Usage
 Advanced usage
 ==============
 
-В плагине есть возможность генерировать данные сверх того, что делает ``pytest``.
-
 Attachments
 ===========
 
-Для того, чтобы сохранить что-нибудь в тесте:
+To attach some content to test report:
 
 .. code:: python
 
@@ -48,7 +46,7 @@ Attachments
 Steps
 =====
 
-Для того, чтобы побить тест на шаги:
+To divide a test into steps:
 
 .. code:: python
 
@@ -62,8 +60,7 @@ Steps
          # do more stuff
 
 
-Работает и как декоратор.
-По умолчанию название степа - это имя декорируемого метода
+Can also be used as decorators. By default step name is generated from method name:
 
 .. code:: python
 
@@ -84,7 +81,7 @@ Steps
      assert make_some_data_bar() is not None
 
 
-При необходимости использования step'ов в коде, который нужен и без pytest, вместо ``pytest.allure.step`` можно использовать ``allure.step``:
+Steps can also be used without pytest. In that case instead of ``pytest.allure.step`` simply use ``allure.step``:
 
 .. code:: python
 
@@ -95,13 +92,13 @@ Steps
      # do stuff
 
 
-Для фикстур поддержка несколько ограничена.
+Steps support is limited when used with fixtures.
 
 
 Severity
 ========
 
-Для тестов, модулей и классов можно задавать приоритеты:
+Any test, class or module can be marked with different severity:
 
 .. code:: python
 
@@ -125,14 +122,22 @@ Severity
          pass
 
 
-Чтобы запустить тесты только определенных приоритетов:
+To run tests with concrete priority:
 
 .. code:: rest
 
  py.test my_tests/ --allure_severities=critical,blocker
 
 
-Extention
+Extending
 =========
 
-Для использования в других фреймворках выделен класс ``allure.common.AllureImpl``, облегчающий создание привязок.
+Use ``allure.common.AllureImpl`` class to bind your logic to this adapter.
+
+
+
+
+
+
+
+
