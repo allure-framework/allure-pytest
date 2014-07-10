@@ -157,7 +157,7 @@ Features & Stories
          pass
 
 
-Чтобы запустить тесты только определенных Feature и Story (story без feature указывать нельзя, все тесты будут пропущены):
+Чтобы запустить тесты по Feature или Story:
 
 .. code:: rest
 

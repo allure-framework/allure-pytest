@@ -70,35 +70,21 @@ def pytest_configure(config):
 def pytest_runtest_setup(item):
     severity = severity_of(item)
     item_labels = labels_of(item)
-    feature_labels = \
-        [label[1] for label in item_labels if label[0] == Labels.FEATURE]
-    story_labels = \
-        [label[1] for label in item_labels if label[0] == Labels.STORY]
 
     if item.config.option.allureseverities and severity not in \
             item.config.option.allureseverities:
         pytest.skip("Not running test of severity %s." % severity)
 
-    allure_features = \
-        [x.strip() for x in item.config.option.allurefeatures.split(',')] if \
+    arg_labels = [(Labels.FEATURE, x.strip()) for x in
+                  item.config.option.allurefeatures.split(',')] if \
         item.config.option.allurefeatures else []
-    allure_stories = \
-        [x.strip() for x in item.config.option.allurestories.split(',')] if \
-        item.config.option.allurestories else []
 
-    if allure_features:
-        if not all([True if allure_feature in feature_labels else False for
-                    allure_feature in allure_features]):
-            pytest.skip('Not suitable with features "%s".' % allure_features)
+    arg_labels.extend([(Labels.STORY, x.strip()) for x in
+                       item.config.option.allurestories.split(',')] if
+                      item.config.option.allurestories else [])
 
-        if allure_stories and not \
-                all([True if allure_story in story_labels else False for
-                     allure_story in allure_stories]):
-            pytest.skip('Not suitable with stories "%s".' % allure_stories)
-
-    elif allure_stories:
-        pytest.skip('Not suitable. Only stories "%s" without features were '
-                    'specified.' % allure_stories)
+    if arg_labels and not set(item_labels) & set(arg_labels):
+        pytest.skip('Not suitable with selected labels.')
 
 
 class LazyInitStepContext(StepContext):

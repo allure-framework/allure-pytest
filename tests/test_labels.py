@@ -6,7 +6,7 @@ Created on Jun 5, 2014
 @author: F1ashhimself
 """
 
-from hamcrest import assert_that, equal_to, none, has_length, starts_with
+from hamcrest import assert_that, equal_to, none, has_length
 
 
 def collect_labels_from_report(report):
@@ -23,7 +23,7 @@ def collect_labels_from_report(report):
 def collect_failure_messages_from_report(report):
     tests = dict()
     for test_case in report.xpath('.//test-case'):
-        tests[test_case.name] = test_case.failure.message if hasattr(test_case, 'failure') else None
+        tests[test_case.name] = test_case.failure['stack-trace'] if hasattr(test_case, 'failure') else None
 
     return tests
 
@@ -109,9 +109,9 @@ def test_multiple_features_and_stories(report_for):
     assert_that(tests['test_b'], equal_to(expected_labels_b))
 
 
-def test_only_specified_feature_and_story(report_for):
+def test_specified_feature_and_story(report_for):
     """
-    Checks that only tests with specified Feature and Story marks will be run.
+    Checks that tests with specified Feature or Story marks will be run.
     """
     report = report_for("""
     import pytest
@@ -134,32 +134,6 @@ def test_only_specified_feature_and_story(report_for):
     tests = collect_failure_messages_from_report(report)
 
     assert_that(tests['test_a'], none())
-    assert_that(tests['test_b'], 'Skipped: Not suitable with stories '
-                                 '"[\'Story1\', \'Story2\']".')
-    assert_that(tests['test_c'], 'Skipped: Not suitable with features '
-                                 '"[\'Feature1\']".')
-
-
-def test_only_story_specified(report_for):
-    """
-    Checks that we all tests will be skipped if only story marker will be
-    specified.
-    """
-    report = report_for("""
-    import pytest
-
-    @pytest.allure.story('Story1')
-    def test_a():
-        pass
-
-    def test_b():
-        pass
-    """, extra_run_args=['--allure_stories', 'Story1'])
-
-    test_cases = report['{}test-cases']['test-case']
-
-    assert_that(str(test_cases[0]['failure']['message']).lower(),
-                starts_with('skipped'))
-
-    assert_that(str(test_cases[1]['failure']['message']).lower(),
-                starts_with('skipped'))
+    assert_that(tests['test_b'], none())
+    assert_that(tests['test_c'], equal_to('Skipped: Not suitable with '
+                                          'selected labels.'))
