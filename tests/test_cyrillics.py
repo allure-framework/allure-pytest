@@ -47,3 +47,7 @@ def test_unicodify_no_breaks_stuff():
 
 def test_complex_exc_xmld_ok():
     assert 'Exception' in present_exception(Exception(u'Помогите'.encode('cp1251')))
+
+
+def test_syntax_error_presentation():
+    assert 'SyntaxError' in present_exception(SyntaxError(u'Помогите'.encode('cp1251')))
