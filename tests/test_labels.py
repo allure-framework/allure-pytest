@@ -46,8 +46,8 @@ def test_feature_and_stories(report_for):
     labels = zip(report.xpath('.//test-case/labels/label/@name'),
                  report.xpath('.//test-case/labels/label/@value'))
 
-    assert_that(labels, equal_to([('feature', 'Feature1'),
-                                  ('story', 'Story1')]))
+    assert_that(labels, equal_to([('allure_feature', 'Feature1'),
+                                  ('allure_story', 'Story1')]))
 
 
 def test_feature_and_stories_inheritance(report_for):
@@ -71,9 +71,9 @@ def test_feature_and_stories_inheritance(report_for):
     """)
 
     tests = collect_labels_from_report(report)
-    expected_labels_a = [('feature', 'Feature2'), ('feature', 'Feature1'),
-                         ('story', 'Story1')]
-    expected_labels_b = [('feature', 'Feature2'), ('feature', 'Feature1')]
+    expected_labels_a = [('allure_feature', 'Feature2'), ('allure_feature', 'Feature1'),
+                         ('allure_story', 'Story1')]
+    expected_labels_b = [('allure_feature', 'Feature2'), ('allure_feature', 'Feature1')]
 
     assert_that(tests['TestMy.test_a'], has_length(len(expected_labels_a)))
     assert_that(tests['TestMy.test_b'], has_length(len(expected_labels_b)))
@@ -99,8 +99,8 @@ def test_multiple_features_and_stories(report_for):
     """)
 
     tests = collect_labels_from_report(report)
-    expected_labels_a = [('feature', 'Feature1'), ('feature', 'Feature2')]
-    expected_labels_b = [('story', 'Story1'), ('story', 'Story2')]
+    expected_labels_a = [('allure_feature', 'Feature1'), ('allure_feature', 'Feature2')]
+    expected_labels_b = [('allure_story', 'Story1'), ('allure_story', 'Story2')]
 
     assert_that(tests['test_a'], has_length(len(expected_labels_a)))
     assert_that(tests['test_b'], has_length(len(expected_labels_b)))
@@ -122,6 +122,7 @@ def test_specified_feature_and_story(report_for):
         pass
 
     @pytest.allure.feature('Feature1')
+    @pytest.allure.feature('Feature2')
     @pytest.allure.story('Story1')
     def test_b():
         pass
@@ -135,5 +136,7 @@ def test_specified_feature_and_story(report_for):
 
     assert_that(tests['test_a'], none())
     assert_that(tests['test_b'], none())
-    assert_that(tests['test_c'], equal_to('Skipped: Not suitable with '
-                                          'selected labels.'))
+    assert_that(tests['test_c'],
+                equal_to("Skipped: Not suitable with selected labels: "
+                         "('allure_feature', 'feature1'), ('allure_story', "
+                         "'story1'), ('allure_story', 'story2')."))

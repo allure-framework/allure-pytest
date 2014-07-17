@@ -20,7 +20,7 @@ from traceback import format_exception_only
 from _pytest.python import Module
 
 from allure.contrib.recordtype import recordtype
-from allure.constants import Severity, Labels
+from allure.constants import Severity, Label
 
 
 def element_maker(name, namespace):
@@ -185,12 +185,18 @@ def labels_of(item):
     """
     Returns list of name-value pairs for labels.
     """
-    features = item.get_marker(Labels.FEATURE)
-    stories = item.get_marker(Labels.STORY)
+
+    # Import is needed here to to avoid cross import.
+    from allure.structure import TestLabel
+
+    features = item.get_marker(Label.FEATURE)
+    stories = item.get_marker(Label.STORY)
 
     labels = list()
-    labels.extend([(Labels.FEATURE, feature) for feature in (features.args if features else ())])
-    labels.extend([(Labels.STORY, story) for story in (stories.args if stories else ())])
+    labels.extend([TestLabel(name=Label.FEATURE, value=feature) for
+                   feature in (features.args if features else ())])
+    labels.extend([TestLabel(name=Label.STORY, value=story) for
+                   story in (stories.args if stories else ())])
 
     return labels
 
@@ -225,7 +231,7 @@ def present_exception(e):
     if not isinstance(e, SyntaxError):
         return unicodify('%s: %s' % (type(e).__name__, unicodify(e)))
     else:
-        return unicodify(format_exception_only(e))
+        return unicodify(format_exception_only(SyntaxError, e))
 
 
 def get_exception_message(report):

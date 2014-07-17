@@ -6,10 +6,10 @@ import pytest
 
 from allure.common import AllureImpl, StepContext
 from allure.constants import Status, AttachmentType, Severity, \
-    FAILED_STATUSES, Labels
+    FAILED_STATUSES, Label
 from allure.utils import parent_module, parent_down_from_module, severity_of, \
     labels_of, all_of, get_exception_message
-from allure.structure import Label
+from allure.structure import TestLabel
 
 
 def pytest_addoption(parser):
@@ -47,7 +47,7 @@ def pytest_addoption(parser):
                                          metavar="FEATURES_LIST",
                                          default=None,
                                          help="""Comma-separated list of feature names.
-                                         Tests only with these feature names will be run.""")
+                                         Run tests that have at least one of the specified feature labels.""")
 
     parser.getgroup("general").addoption('--allure_stories',
                                          action="store",
@@ -55,7 +55,7 @@ def pytest_addoption(parser):
                                          metavar="STORIES_LIST",
                                          default=None,
                                          help="""Comma-separated list of story names.
-                                         Tests only with these story names will be run.""")
+                                         Run tests that have at least one of the specified story labels.""")
 
 
 def pytest_configure(config):
@@ -75,16 +75,22 @@ def pytest_runtest_setup(item):
             item.config.option.allureseverities:
         pytest.skip("Not running test of severity %s." % severity)
 
-    arg_labels = [(Labels.FEATURE, x.strip()) for x in
-                  item.config.option.allurefeatures.split(',')] if \
+    arg_labels = [TestLabel(name=Label.FEATURE, value=x) for x
+                  in item.config.option.allurefeatures.split(',')] if \
         item.config.option.allurefeatures else []
 
-    arg_labels.extend([(Labels.STORY, x.strip()) for x in
-                       item.config.option.allurestories.split(',')] if
+    arg_labels.extend([TestLabel(name=Label.STORY, value=x) for x
+                       in item.config.option.allurestories.split(',')] if
                       item.config.option.allurestories else [])
 
-    if arg_labels and not set(item_labels) & set(arg_labels):
-        pytest.skip('Not suitable with selected labels.')
+    if arg_labels:
+        # and not set(item_labels) & set(arg_labels)
+        extracted_arg_labels = [(x.name, x.value.lower()) for x in arg_labels]
+        extracted_item_labels = \
+            [(x.name, x.value.lower()) for x in item_labels]
+        if not set(extracted_arg_labels) & set(extracted_item_labels):
+            pytest.skip('Not suitable with selected labels: %s.' %
+                        ', '.join(map(str, extracted_arg_labels)))
 
 
 class LazyInitStepContext(StepContext):
@@ -129,15 +135,16 @@ class AllureHelper(object):
         """
         A decorator factory that returns ``pytest.mark`` for a given features.
         """
-
-        return pytest.mark.feature(*args)
+        allure_feature = getattr(pytest.mark, Label.FEATURE)
+        return allure_feature(*args)
 
     def story(self, *args):
         """
         A decorator factory that returns ``pytest.mark`` for a given stories.
         """
 
-        return pytest.mark.story(*args)
+        allure_story = getattr(pytest.mark, Label.STORY)
+        return allure_story(*args)
 
     def step(self, title):
         """
@@ -243,10 +250,17 @@ class AllureTestListener(object):
                                 message=get_exception_message(report),
                                 trace=report.longrepr or report.wasxfail)
         elif status == Status.SKIPPED:
+            skip_message = type(report.longrepr) == tuple and \
+                report.longrepr[2] or report.wasxfail
+            trim_msg_len = 89
+            short_message = skip_message.split('\n')[0][:trim_msg_len]
+
             # FIXME: see pytest.runner.pytest_runtest_makereport
             self.impl.stop_case(status,
-                                message='skipped',
-                                trace=type(report.longrepr) == tuple and report.longrepr[2] or report.wasxfail)
+                                message=(short_message + '...' *
+                                         (len(skip_message) > trim_msg_len)),
+                                trace=None if short_message ==
+                                skip_message else skip_message)
         else:
             self.impl.stop_case(status)
 
@@ -258,10 +272,8 @@ class AllureTestListener(object):
             self.testsuite = 'Yes'
 
         name = '.'.join(mangle_testnames([x.name for x in parent_down_from_module(item)]))
-        item_labels = [Label(name=label[0], value=label[1]) for label in labels_of(item)]
-
         self.impl.start_case(name, description=item.function.__doc__, severity=severity_of(item),
-                             labels=item_labels)
+                             labels=labels_of(item))
         result = __multicall__.execute()
 
         if not nextitem or parent_module(item) != parent_module(nextitem):

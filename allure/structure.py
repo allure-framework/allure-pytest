@@ -55,6 +55,6 @@ TestStep = xmlfied('step',
                    stop=Attribute(),
                    status=Attribute())
 
-Label = xmlfied('label',
+TestLabel = xmlfied('label',
                 name=Attribute(),
                 value=Attribute())
