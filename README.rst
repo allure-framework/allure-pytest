@@ -145,10 +145,11 @@ Feature and Story can be set for test.
 
 
  @allure.feature('Feature2')
- @allure.story('Story2')
+ @allure.story('Story2', 'Story3')
+ @allure.story('Story4')
  class TestBar:
 
-     # will have 'Feature2 and Story2'
+     # will have 'Feature2 and Story2 and Story3 and Story4'
      def test_bar(self):
          pass
 

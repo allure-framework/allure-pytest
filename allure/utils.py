@@ -183,7 +183,7 @@ def severity_of(item):
 
 def labels_of(item):
     """
-    Returns list of name-value pairs for labels.
+    Returns list of TestLabel elements.
     """
 
     # Import is needed here to to avoid cross import.

@@ -6,7 +6,7 @@ Created on Jun 5, 2014
 @author: F1ashhimself
 """
 
-from hamcrest import assert_that, equal_to, none, has_length
+from hamcrest import assert_that, equal_to, none, has_length, is_
 
 
 def collect_labels_from_report(report):
@@ -33,12 +33,12 @@ def test_feature_and_stories(report_for):
     Checks that feature and stories markers for tests are shown in report.
     """
     report = report_for("""
-    import pytest
+    import allure
 
-    @pytest.allure.feature('Feature1')
+    @allure.feature('Feature1')
     class TestMy:
 
-        @pytest.allure.story('Story1')
+        @allure.story('Story1')
         def test_a(self):
             pass
     """)
@@ -55,14 +55,14 @@ def test_feature_and_stories_inheritance(report_for):
     Checks that feature and stories markers can be inherited.
     """
     report = report_for("""
-    import pytest
+    import allure
 
-    pytestmark = pytest.allure.feature('Feature1')
+    pytestmark = allure.feature('Feature1')
 
-    @pytest.allure.feature('Feature2')
+    @allure.feature('Feature2')
     class TestMy:
 
-        @pytest.allure.story('Story1')
+        @allure.story('Story1')
         def test_a(self):
             pass
 
@@ -87,26 +87,27 @@ def test_multiple_features_and_stories(report_for):
     Checks that we can handle multiple feature and stories markers.
     """
     report = report_for("""
-    import pytest
+    import allure
 
-    @pytest.allure.feature('Feature1', 'Feature2')
+    @allure.feature('Feature1', 'Feature2')
+    @allure.feature('Feature3')
     def test_a():
         pass
 
-    @pytest.allure.story('Story1', 'Story2')
+    @allure.story('Story1', 'Story2')
+    @allure.story('Story3')
     def test_b():
         pass
     """)
 
     tests = collect_labels_from_report(report)
-    expected_labels_a = [('allure_feature', 'Feature1'), ('allure_feature', 'Feature2')]
-    expected_labels_b = [('allure_story', 'Story1'), ('allure_story', 'Story2')]
+    expected_labels_a = [('allure_feature', 'Feature1'), ('allure_feature', 'Feature2'),
+                         ('allure_feature', 'Feature3')]
+    expected_labels_b = [('allure_story', 'Story1'), ('allure_story', 'Story2'),
+                         ('allure_story', 'Story3')]
 
-    assert_that(tests['test_a'], has_length(len(expected_labels_a)))
-    assert_that(tests['test_b'], has_length(len(expected_labels_b)))
-
-    assert_that(tests['test_a'], equal_to(expected_labels_a))
-    assert_that(tests['test_b'], equal_to(expected_labels_b))
+    assert_that(sorted(tests['test_a']), equal_to(sorted(expected_labels_a)))
+    assert_that(sorted(tests['test_b']), equal_to(sorted(expected_labels_b)))
 
 
 def test_specified_feature_and_story(report_for):
@@ -114,16 +115,16 @@ def test_specified_feature_and_story(report_for):
     Checks that tests with specified Feature or Story marks will be run.
     """
     report = report_for("""
-    import pytest
+    import allure
 
-    @pytest.allure.feature('Feature1')
-    @pytest.allure.story('Story1', 'Story2')
+    @allure.feature('Feature1')
+    @allure.story('Story1', 'Story2')
     def test_a():
         pass
 
-    @pytest.allure.feature('Feature1')
-    @pytest.allure.feature('Feature2')
-    @pytest.allure.story('Story1')
+    @allure.feature('Feature1')
+    @allure.feature('Feature2')
+    @allure.story('Story1')
     def test_b():
         pass
 
@@ -134,8 +135,8 @@ def test_specified_feature_and_story(report_for):
 
     tests = collect_failure_messages_from_report(report)
 
-    assert_that(tests['test_a'], none())
-    assert_that(tests['test_b'], none())
+    assert_that(tests['test_a'], is_(none()))
+    assert_that(tests['test_b'], is_(none()))
     assert_that(tests['test_c'],
                 equal_to("Skipped: Not suitable with selected labels: "
                          "('allure_feature', 'feature1'), ('allure_story', "

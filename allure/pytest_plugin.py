@@ -131,20 +131,20 @@ class AllureHelper(object):
         """
         return pytest.mark.allure_severity(level)
 
-    def feature(self, *args):
+    def feature(self, *features):
         """
         A decorator factory that returns ``pytest.mark`` for a given features.
         """
         allure_feature = getattr(pytest.mark, Label.FEATURE)
-        return allure_feature(*args)
+        return allure_feature(*features)
 
-    def story(self, *args):
+    def story(self, *stories):
         """
         A decorator factory that returns ``pytest.mark`` for a given stories.
         """
 
         allure_story = getattr(pytest.mark, Label.STORY)
-        return allure_story(*args)
+        return allure_story(*stories)
 
     def step(self, title):
         """
