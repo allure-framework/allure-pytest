@@ -134,7 +134,8 @@ class AllureHelper(object):
         A decorator factory that returns ``pytest.mark`` for a given label.
         """
 
-        allure_label = getattr(pytest.mark, '%s.%s' % (Label.DEFAULT, name))
+        allure_label = getattr(pytest.mark, '%s.%s' %
+                               (Label.DEFAULT, name.encode('utf-8', 'ignore')))
         return allure_label(*value)
 
     def feature(self, *features):

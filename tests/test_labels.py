@@ -60,6 +60,38 @@ def test_labels(report_for):
         has_label('TestMy.test_a', 'label_name2', 'label_value2')))
 
 
+def test_labels_inheritance(report_for):
+    """
+    Checks that label markers can be inherited.
+    """
+    report = report_for("""
+    import allure
+
+    pytestmark = allure.label('label_name1', 'label_value1')
+
+    @allure.label('label_name2', 'label_value2')
+    class TestMy:
+
+        @allure.label('label_name3', 'label_value3')
+        @allure.label('label_name4', 'label_value4')
+        def test_a(self):
+            pass
+
+        def test_b(self):
+            pass
+    """)
+
+    assert_that(report, all_of(
+        has_label_length('TestMy.test_a', 4),
+        has_label('TestMy.test_a', 'label_name1', 'label_value1'),
+        has_label('TestMy.test_a', 'label_name2', 'label_value2'),
+        has_label('TestMy.test_a', 'label_name3', 'label_value3'),
+        has_label('TestMy.test_a', 'label_name4', 'label_value4'),
+        has_label_length('TestMy.test_b', 2),
+        has_label('TestMy.test_a', 'label_name1', 'label_value1'),
+        has_label('TestMy.test_a', 'label_name2', 'label_value2')))
+
+
 def test_feature_and_stories(report_for):
     """
     Checks that feature and stories markers for tests are shown in report.
