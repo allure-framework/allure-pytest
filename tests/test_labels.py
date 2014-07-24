@@ -6,26 +6,58 @@ Created on Jun 5, 2014
 @author: F1ashhimself
 """
 
-from hamcrest import assert_that, equal_to, none, has_length, is_
+import pytest
+from hamcrest import assert_that, equal_to, has_length, is_not, has_property, has_properties, has_item, anything, all_of, any_of
 
 
-def collect_labels_from_report(report):
-    tests = dict()
-    for test_case in report.xpath('.//test-case'):
-        for label in test_case.labels.label:
-            tests.setdefault(test_case.name, list())
-            tests[test_case.name].append((label.attrib['name'],
-                                         label.attrib['value']))
+def has_label(test_name, label_name=anything(), label_value=anything()):
+    return has_property('{}test-cases',
+                        has_property('test-case',
+                                     has_item(
+                                         has_properties({'name': equal_to(test_name),
+                                                         'labels': has_property('label',
+                                                                                has_item(
+                                                                                    has_property('attrib', equal_to(
+                                                                                        {'name': label_name,
+                                                                                         'value': label_value}))))}))))
 
-    return tests
+
+def has_label_length(test_name, label_length):
+    return has_property('{}test-cases',
+                        has_property('test-case',
+                                     has_item(
+                                         has_properties({'name': equal_to(test_name),
+                                                         'labels': has_property('label', has_length(equal_to(label_length)))}))))
 
 
-def collect_failure_messages_from_report(report):
-    tests = dict()
-    for test_case in report.xpath('.//test-case'):
-        tests[test_case.name] = test_case.failure['stack-trace'] if hasattr(test_case, 'failure') else None
+def has_failure(test_name, message=anything()):
+    return has_property('{}test-cases',
+                        has_property('test-case',
+                                     has_item(
+                                         has_properties({'name': equal_to(test_name),
+                                                         'failure': any_of(
+                                                             has_property('stack-trace', equal_to(message)),
+                                                             has_property('message', equal_to(message)))}))))
 
-    return tests
+
+def test_labels(report_for):
+    """
+    Checks that label markers for tests are shown in report.
+    """
+    report = report_for("""
+    import allure
+
+    @allure.label('label_name1', 'label_value1')
+    class TestMy:
+
+        @allure.label('label_name2', 'label_value2')
+        def test_a(self):
+            pass
+    """)
+
+    assert_that(report, all_of(
+        has_label('TestMy.test_a', 'label_name1', 'label_value1'),
+        has_label('TestMy.test_a', 'label_name2', 'label_value2')))
 
 
 def test_feature_and_stories(report_for):
@@ -43,11 +75,9 @@ def test_feature_and_stories(report_for):
             pass
     """)
 
-    labels = zip(report.xpath('.//test-case/labels/label/@name'),
-                 report.xpath('.//test-case/labels/label/@value'))
-
-    assert_that(labels, equal_to([('allure_feature', 'Feature1'),
-                                  ('allure_story', 'Story1')]))
+    assert_that(report, all_of(
+        has_label('TestMy.test_a', 'feature', 'Feature1'),
+        has_label('TestMy.test_a', 'story', 'Story1')))
 
 
 def test_feature_and_stories_inheritance(report_for):
@@ -70,16 +100,14 @@ def test_feature_and_stories_inheritance(report_for):
             pass
     """)
 
-    tests = collect_labels_from_report(report)
-    expected_labels_a = [('allure_feature', 'Feature2'), ('allure_feature', 'Feature1'),
-                         ('allure_story', 'Story1')]
-    expected_labels_b = [('allure_feature', 'Feature2'), ('allure_feature', 'Feature1')]
-
-    assert_that(tests['TestMy.test_a'], has_length(len(expected_labels_a)))
-    assert_that(tests['TestMy.test_b'], has_length(len(expected_labels_b)))
-
-    assert_that(tests['TestMy.test_a'], equal_to(expected_labels_a))
-    assert_that(tests['TestMy.test_b'], equal_to(expected_labels_b))
+    assert_that(report, all_of(
+        has_label_length('TestMy.test_a', 3),
+        has_label('TestMy.test_a', 'feature', 'Feature1'),
+        has_label('TestMy.test_a', 'feature', 'Feature2'),
+        has_label('TestMy.test_a', 'story', 'Story1'),
+        has_label_length('TestMy.test_b', 2),
+        has_label('TestMy.test_a', 'feature', 'Feature1'),
+        has_label('TestMy.test_a', 'feature', 'Feature2')))
 
 
 def test_multiple_features_and_stories(report_for):
@@ -100,20 +128,31 @@ def test_multiple_features_and_stories(report_for):
         pass
     """)
 
-    tests = collect_labels_from_report(report)
-    expected_labels_a = [('allure_feature', 'Feature1'), ('allure_feature', 'Feature2'),
-                         ('allure_feature', 'Feature3')]
-    expected_labels_b = [('allure_story', 'Story1'), ('allure_story', 'Story2'),
-                         ('allure_story', 'Story3')]
+    assert_that(report, all_of(
+        has_label('test_a', 'feature', 'Feature1'),
+        has_label('test_a', 'feature', 'Feature2'),
+        has_label('test_a', 'feature', 'Feature3'),
+        has_label('test_b', 'story', 'Story1'),
+        has_label('test_b', 'story', 'Story2'),
+        has_label('test_b', 'story', 'Story3')))
 
-    assert_that(sorted(tests['test_a']), equal_to(sorted(expected_labels_a)))
-    assert_that(sorted(tests['test_b']), equal_to(sorted(expected_labels_b)))
 
-
-def test_specified_feature_and_story(report_for):
+@pytest.mark.parametrize('features, stories, expected_failure',
+                         [(None, None, (False, False, False)),
+                          ('Feature1', 'Story1,Story2', (False, False, True)),
+                          (None, 'Story1', (False, False, True)),
+                          ('Feature2', None, (True, False, True))])
+def test_specified_feature_and_story(report_for, features, stories, expected_failure):
     """
     Checks that tests with specified Feature or Story marks will be run.
     """
+
+    extra_run_args = list()
+    if features:
+        extra_run_args.extend(['--allure_features', features])
+    if stories:
+        extra_run_args.extend(['--allure_stories', stories])
+
     report = report_for("""
     import allure
 
@@ -130,14 +169,15 @@ def test_specified_feature_and_story(report_for):
 
     def test_c():
         pass
-    """, extra_run_args=['--allure_features', 'Feature1',
-                         '--allure_stories', 'Story1,Story2'])
+    """, extra_run_args=extra_run_args)
 
-    tests = collect_failure_messages_from_report(report)
+    for test_num, test_name in enumerate(['test_a', 'test_b', 'test_c']):
+        if expected_failure[test_num]:
+            # Dynamically collecting skip message.
+            skipped_message = ["('feature', '%s')" % feature.strip() for feature in (features.split(',') if features else ())]
+            skipped_message.extend(["('story', '%s')" % story.strip() for story in (stories.split(',') if stories else ())])
+            skipped_message = 'Skipped: Not suitable with selected labels: %s.' % ', '.join(skipped_message)
 
-    assert_that(tests['test_a'], is_(none()))
-    assert_that(tests['test_b'], is_(none()))
-    assert_that(tests['test_c'],
-                equal_to("Skipped: Not suitable with selected labels: "
-                         "('allure_feature', 'feature1'), ('allure_story', "
-                         "'story1'), ('allure_story', 'story2')."))
+            assert_that(report, has_failure(test_name, skipped_message))
+        else:
+            assert_that(report, is_not(has_failure(test_name)))

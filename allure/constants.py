@@ -39,5 +39,6 @@ ALLURE_NAMESPACE = "urn:model.allure.qatools.yandex.ru"
 
 
 class Label:
-    FEATURE = 'allure_feature'
-    STORY = 'allure_story'
+    DEFAULT = 'allure_label'
+    FEATURE = 'feature'
+    STORY = 'story'

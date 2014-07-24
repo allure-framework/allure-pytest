@@ -5,6 +5,7 @@ from _pytest.junitxml import mangle_testnames
 import pytest
 
 from allure.common import AllureImpl, StepContext
+from allure.utils import LabelsList
 from allure.constants import Status, AttachmentType, Severity, \
     FAILED_STATUSES, Label
 from allure.utils import parent_module, parent_down_from_module, severity_of, \
@@ -31,6 +32,12 @@ def pytest_addoption(parser):
 
         return entries
 
+    def features_label_type(string):
+        return LabelsList([TestLabel(name=Label.FEATURE, value=x) for x in string.split(',')])
+
+    def stories_label_type(string):
+        return LabelsList([TestLabel(name=Label.STORY, value=x) for x in string.split(',')])
+
     parser.getgroup("general").addoption('--allure_severities',
                                          action="store",
                                          dest="allureseverities",
@@ -45,7 +52,8 @@ def pytest_addoption(parser):
                                          action="store",
                                          dest="allurefeatures",
                                          metavar="FEATURES_LIST",
-                                         default=None,
+                                         default=LabelsList(),
+                                         type=features_label_type,
                                          help="""Comma-separated list of feature names.
                                          Run tests that have at least one of the specified feature labels.""")
 
@@ -53,7 +61,8 @@ def pytest_addoption(parser):
                                          action="store",
                                          dest="allurestories",
                                          metavar="STORIES_LIST",
-                                         default=None,
+                                         default=LabelsList(),
+                                         type=stories_label_type,
                                          help="""Comma-separated list of story names.
                                          Run tests that have at least one of the specified story labels.""")
 
@@ -71,26 +80,15 @@ def pytest_runtest_setup(item):
     severity = severity_of(item)
     item_labels = labels_of(item)
 
-    if item.config.option.allureseverities and severity not in \
-            item.config.option.allureseverities:
+    option = item.config.option
+    if option.allureseverities and severity not in \
+            option.allureseverities:
         pytest.skip("Not running test of severity %s." % severity)
 
-    arg_labels = [TestLabel(name=Label.FEATURE, value=x) for x
-                  in item.config.option.allurefeatures.split(',')] if \
-        item.config.option.allurefeatures else []
+    arg_labels = option.allurefeatures + option.allurestories
 
-    arg_labels.extend([TestLabel(name=Label.STORY, value=x) for x
-                       in item.config.option.allurestories.split(',')] if
-                      item.config.option.allurestories else [])
-
-    if arg_labels:
-        # and not set(item_labels) & set(arg_labels)
-        extracted_arg_labels = [(x.name, x.value.lower()) for x in arg_labels]
-        extracted_item_labels = \
-            [(x.name, x.value.lower()) for x in item_labels]
-        if not set(extracted_arg_labels) & set(extracted_item_labels):
-            pytest.skip('Not suitable with selected labels: %s.' %
-                        ', '.join(map(str, extracted_arg_labels)))
+    if arg_labels and not item_labels & arg_labels:
+        pytest.skip('Not suitable with selected labels: %s.' % arg_labels)
 
 
 class LazyInitStepContext(StepContext):
@@ -131,20 +129,26 @@ class AllureHelper(object):
         """
         return pytest.mark.allure_severity(level)
 
+    def label(self, name, *value):
+        """
+        A decorator factory that returns ``pytest.mark`` for a given label.
+        """
+
+        allure_label = getattr(pytest.mark, '%s.%s' % (Label.DEFAULT, name))
+        return allure_label(*value)
+
     def feature(self, *features):
         """
         A decorator factory that returns ``pytest.mark`` for a given features.
         """
-        allure_feature = getattr(pytest.mark, Label.FEATURE)
-        return allure_feature(*features)
+        return self.label(Label.FEATURE, *features)
 
     def story(self, *stories):
         """
         A decorator factory that returns ``pytest.mark`` for a given stories.
         """
 
-        allure_story = getattr(pytest.mark, Label.STORY)
-        return allure_story(*stories)
+        return self.label(Label.STORY, *stories)
 
     def step(self, title):
         """

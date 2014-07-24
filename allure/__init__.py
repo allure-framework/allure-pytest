@@ -1,9 +1,8 @@
 from allure.pytest_plugin import MASTER_HELPER
 
 
-# allow using allure.step decorator instead of pytest.allure.step
-step = MASTER_HELPER.step
-attach = MASTER_HELPER.attach
-single_step = MASTER_HELPER.single_step
-feature = MASTER_HELPER.feature
-story = MASTER_HELPER.story
+# providing decorators via allure.xxx instead of pytest.allure.xxx
+__methods_to_provide = ['step', 'attach', 'single_step', 'label', 'feature', 'story']
+
+for method in __methods_to_provide:
+    globals()[method] = getattr(MASTER_HELPER, method)

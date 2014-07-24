@@ -8,128 +8,15 @@ Created on Oct 22, 2013
 @author: pupssman
 '''
 
-import re
-import sys
 import time
 import hashlib
 import inspect
-
-from lxml import objectify
 from traceback import format_exception_only
 
 from _pytest.python import Module
 
-from allure.contrib.recordtype import recordtype
 from allure.constants import Severity, Label
-
-
-def element_maker(name, namespace):
-    return getattr(objectify.ElementMaker(annotate=False, namespace=namespace,), name)
-
-
-class Rule:
-    _check = None
-
-    def value(self, name, what):
-        raise NotImplemented()
-
-    def if_(self, check):
-        self._check = check
-        return self
-
-    def check(self, what):
-        if self._check:
-            return self._check(what)
-        else:
-            return True
-
-
-# see http://en.wikipedia.org/wiki/Valid_characters_in_XML#Non-restricted_characters
-
-# We need to get the subset of the invalid unicode ranges according to
-# XML 1.0 which are valid in this python build.  Hence we calculate
-# this dynamically instead of hardcoding it.  The spec range of valid
-# chars is: Char ::= #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD]
-#                    | [#x10000-#x10FFFF]
-_legal_chars = (0x09, 0x0A, 0x0d)
-_legal_ranges = (
-    (0x20, 0x7E),
-    (0x80, 0xD7FF),
-    (0xE000, 0xFFFD),
-    (0x10000, 0x10FFFF),
-)
-_legal_xml_re = [unicode("%s-%s") % (unichr(low), unichr(high)) for (low, high) in _legal_ranges if low < sys.maxunicode]
-_legal_xml_re = [unichr(x) for x in _legal_chars] + _legal_xml_re
-illegal_xml_re = re.compile(unicode('[^%s]') % unicode('').join(_legal_xml_re))
-
-
-def legalize_xml(arg):
-    def repl(matchobj):
-        i = ord(matchobj.group())
-        if i <= 0xFF:
-            return unicode('#x%02X') % i
-        else:
-            return unicode('#x%04X') % i
-    return illegal_xml_re.sub(repl, arg)
-
-
-class Element(Rule):
-    def __init__(self, name='', namespace=''):
-        self.name = name
-        self.namespace = namespace
-
-    def value(self, name, what):
-        if not isinstance(what, basestring):
-            return self.value(name, str(what))
-
-        if not isinstance(what, unicode):
-            try:
-                what = unicode(what, 'utf-8')
-            except UnicodeDecodeError:
-                what = unicode(what, 'utf-8', errors='replace')
-
-        return element_maker(self.name or name, self.namespace)(legalize_xml(what))
-
-
-class Attribute(Rule):
-    def value(self, name, what):
-        return str(what)
-
-
-class Nested(Rule):
-    def value(self, name, what):
-        return what.toxml()
-
-
-class Many(Rule):
-    def __init__(self, rule, name='', namespace=''):
-        self.rule = rule
-        self.name = name
-        self.namespace = namespace
-
-    def value(self, name, what):
-        el = element_maker(self.name or name, self.namespace)
-
-        return el(*[self.rule.value(name, x) for x in what])
-
-
-def xmlfied(el_name, namespace='', fields=[], **kw):
-    items = fields + kw.items()
-
-    class MyImpl(recordtype('XMLFied', [(item[0], None) for item in items])):
-        def toxml(self):
-            el = element_maker(el_name, namespace)
-            entries = lambda clazz: [(name, rule.value(name, getattr(self, name))) for (name, rule) in items if isinstance(rule, clazz) and rule.check(getattr(self, name))]
-
-            elements = entries(Element)
-            attributes = entries(Attribute)
-            nested = entries(Nested)
-            manys = sum([[(m[0], v) for v in m[1]] for m in entries(Many)], [])
-
-            return el(*([element for (_, element) in elements + nested + manys]),
-                      **{name: attr for (name, attr) in attributes})
-
-    return MyImpl
+from allure.structure import TestLabel
 
 
 def parents_of(item):
@@ -186,17 +73,24 @@ def labels_of(item):
     Returns list of TestLabel elements.
     """
 
-    # Import is needed here to to avoid cross import.
-    from allure.structure import TestLabel
+    def get_marker_that_starts_with(item, name):
+        """ get a list of marker object from item node that starts with given
+        name or empty list if the node doesn't have a marker that starts with
+        that name."""
+        suitable_names = filter(lambda x: x.startswith(name), item.keywords.keys())
 
-    features = item.get_marker(Label.FEATURE)
-    stories = item.get_marker(Label.STORY)
+        markers = list()
+        for name in suitable_names:
+            markers.append(item.get_marker(name))
 
-    labels = list()
-    labels.extend([TestLabel(name=Label.FEATURE, value=feature) for
-                   feature in (features.args if features else ())])
-    labels.extend([TestLabel(name=Label.STORY, value=story) for
-                   story in (stories.args if stories else ())])
+        return markers
+
+    labels = LabelsList()
+    label_markers = get_marker_that_starts_with(item, Label.DEFAULT)
+    for label_marker in label_markers:
+        label_name = label_marker.name.split('.', 1)[-1]
+        for label_value in label_marker.args or ():
+            labels.append(TestLabel(name=label_name, value=label_value))
 
     return labels
 
@@ -239,3 +133,33 @@ def get_exception_message(report):
     get exception message from pytest's internal ``report`` object
     """
     return (getattr(report, 'exception', None) and present_exception(report.exception.value)) or (hasattr(report, 'result') and report.result) or report.outcome
+
+
+class LabelsList(list):
+
+    def __eq__(self, other):
+        if len(self) != len(other):
+            return False
+
+        other = other[:]
+        for el in self:
+            if el not in other:
+                return False
+
+            other.remove(el)
+
+        return True
+
+    def __add__(self, other):
+        return self.__class__(super(LabelsList, self).__add__(other))
+
+    def __and__(self, other):
+        result = self.__class__()
+        for el in self:
+            if el in other and el not in result:
+                result.append(el)
+
+        return result
+
+    def __str__(self):
+        return ', '.join(map(str, [(el.name, el.value) for el in self]))

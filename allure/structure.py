@@ -6,7 +6,7 @@ Created on Oct 23, 2013
 @author: pupssman
 '''
 
-from allure.utils import xmlfied, Attribute, Element, Many, Nested
+from allure.rules import xmlfied, Attribute, Element, Many, Nested
 from allure.constants import ALLURE_NAMESPACE
 
 
