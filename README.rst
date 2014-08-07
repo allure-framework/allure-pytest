@@ -128,16 +128,40 @@ To run tests with concrete priority:
 
  py.test my_tests/ --allure_severities=critical,blocker
 
+Features & Stories
+========
+
+Feature and Story can be set for test.
+
+.. code:: python
+
+ import allure
+
+
+ @allure.feature('Feature1')
+ @allure.story('Story1')
+ def test_minor():
+     assert False
+
+
+ @allure.feature('Feature2')
+ @allure.story('Story2', 'Story3')
+ @allure.story('Story4')
+ class TestBar:
+
+     # will have 'Feature2 and Story2 and Story3 and Story4'
+     def test_bar(self):
+         pass
+
+
+To run tests by Feature or Story:
+
+.. code:: rest
+
+ py.test my_tests/ --allure_features=feature1,feature2
+ py.test my_tests/ --allure_features=feature1,feature2 --allure_stories=story1,story2
 
 Extending
 =========
 
 Use ``allure.common.AllureImpl`` class to bind your logic to this adapter.
-
-
-
-
-
-
-
-

@@ -15,9 +15,9 @@ def has_error(message='', trace=''):
                         has_property('test-case',
                                      has_property('failure',
                                                   has_properties({
-                                                                  'message': message,
-                                                                  'stack-trace': has_string(trace)
-                                                                  }))))
+                                                      'message': message,
+                                                      'stack-trace': has_string(trace)
+                                                  }))))
 
 
 def test_smoke(report_for):
@@ -28,8 +28,8 @@ def test_smoke(report_for):
 
     assert_that(report, has_error(message='RuntimeError: Foo bar baz',
                                   trace=string_contains_in_order('raise',
-                                                                            'RuntimeError("Foo bar baz")',
-                                                                            "RuntimeError: Foo bar baz")))
+                                                                 'RuntimeError("Foo bar baz")',
+                                                                 "RuntimeError: Foo bar baz")))
 
 
 def test_setup_error(report_for):
@@ -46,9 +46,9 @@ def test_setup_error(report_for):
 
     assert_that(report, has_error(message='RuntimeError: ololo',
                                   trace=string_contains_in_order('FOO',
-                                                                            'raise',
-                                                                            'RuntimeError("ololo")',
-                                                                            "RuntimeError: ololo")))
+                                                                 'raise',
+                                                                 'RuntimeError("ololo")',
+                                                                 "RuntimeError: ololo")))
 
 
 def test_missing_fixture(report_for):
@@ -59,7 +59,7 @@ def test_missing_fixture(report_for):
 
     assert_that(report, has_error(message=string_contains_in_order('FixtureLookupError'),
                                   trace=string_contains_in_order("fixture 'FOO' not found",
-                                                                            'available fixtures',)))
+                                                                 'available fixtures',)))
 
 
 def test_collect_error(report_for):
@@ -70,7 +70,7 @@ def test_collect_error(report_for):
 
     assert_that(report, has_error(message='failed',
                                   trace=string_contains_in_order('import',
-                                                                            'SyntaxError')))
+                                                                 'SyntaxError')))
 
 
 def test_xpass(report_for):

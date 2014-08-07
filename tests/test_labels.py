@@ -1,0 +1,215 @@
+"""
+Test for labels markings in allure
+
+Created on Jun 5, 2014
+
+@author: F1ashhimself
+"""
+
+import pytest
+from hamcrest import assert_that, equal_to, has_length, is_not, has_property, has_properties, has_item, anything, all_of, any_of
+
+
+def has_label(test_name, label_name=anything(), label_value=anything()):
+    return has_property('{}test-cases',
+                        has_property('test-case',
+                                     has_item(
+                                         has_properties({'name': equal_to(test_name),
+                                                         'labels': has_property('label',
+                                                                                has_item(
+                                                                                    has_property('attrib', equal_to(
+                                                                                        {'name': label_name,
+                                                                                         'value': label_value}))))}))))
+
+
+def has_label_length(test_name, label_length):
+    return has_property('{}test-cases',
+                        has_property('test-case',
+                                     has_item(
+                                         has_properties({'name': equal_to(test_name),
+                                                         'labels': has_property('label', has_length(equal_to(label_length)))}))))
+
+
+def has_failure(test_name, message=anything()):
+    return has_property('{}test-cases',
+                        has_property('test-case',
+                                     has_item(
+                                         has_properties({'name': equal_to(test_name),
+                                                         'failure': any_of(
+                                                             has_property('stack-trace', equal_to(message)),
+                                                             has_property('message', equal_to(message)))}))))
+
+
+def test_labels(report_for):
+    """
+    Checks that label markers for tests are shown in report.
+    """
+    report = report_for("""
+    import allure
+
+    @allure.label('label_name1', 'label_value1')
+    class TestMy:
+
+        @allure.label('label_name2', 'label_value2')
+        def test_a(self):
+            pass
+    """)
+
+    assert_that(report, all_of(
+        has_label('TestMy.test_a', 'label_name1', 'label_value1'),
+        has_label('TestMy.test_a', 'label_name2', 'label_value2')))
+
+
+def test_labels_inheritance(report_for):
+    """
+    Checks that label markers can be inherited.
+    """
+    report = report_for("""
+    import allure
+
+    pytestmark = allure.label('label_name1', 'label_value1')
+
+    @allure.label('label_name2', 'label_value2')
+    class TestMy:
+
+        @allure.label('label_name3', 'label_value3')
+        @allure.label('label_name4', 'label_value4')
+        def test_a(self):
+            pass
+
+        def test_b(self):
+            pass
+    """)
+
+    assert_that(report, all_of(
+        has_label_length('TestMy.test_a', 4),
+        has_label('TestMy.test_a', 'label_name1', 'label_value1'),
+        has_label('TestMy.test_a', 'label_name2', 'label_value2'),
+        has_label('TestMy.test_a', 'label_name3', 'label_value3'),
+        has_label('TestMy.test_a', 'label_name4', 'label_value4'),
+        has_label_length('TestMy.test_b', 2),
+        has_label('TestMy.test_a', 'label_name1', 'label_value1'),
+        has_label('TestMy.test_a', 'label_name2', 'label_value2')))
+
+
+def test_feature_and_stories(report_for):
+    """
+    Checks that feature and stories markers for tests are shown in report.
+    """
+    report = report_for("""
+    import allure
+
+    @allure.feature('Feature1')
+    class TestMy:
+
+        @allure.story('Story1')
+        def test_a(self):
+            pass
+    """)
+
+    assert_that(report, all_of(
+        has_label('TestMy.test_a', 'feature', 'Feature1'),
+        has_label('TestMy.test_a', 'story', 'Story1')))
+
+
+def test_feature_and_stories_inheritance(report_for):
+    """
+    Checks that feature and stories markers can be inherited.
+    """
+    report = report_for("""
+    import allure
+
+    pytestmark = allure.feature('Feature1')
+
+    @allure.feature('Feature2')
+    class TestMy:
+
+        @allure.story('Story1')
+        def test_a(self):
+            pass
+
+        def test_b(self):
+            pass
+    """)
+
+    assert_that(report, all_of(
+        has_label_length('TestMy.test_a', 3),
+        has_label('TestMy.test_a', 'feature', 'Feature1'),
+        has_label('TestMy.test_a', 'feature', 'Feature2'),
+        has_label('TestMy.test_a', 'story', 'Story1'),
+        has_label_length('TestMy.test_b', 2),
+        has_label('TestMy.test_a', 'feature', 'Feature1'),
+        has_label('TestMy.test_a', 'feature', 'Feature2')))
+
+
+def test_multiple_features_and_stories(report_for):
+    """
+    Checks that we can handle multiple feature and stories markers.
+    """
+    report = report_for("""
+    import allure
+
+    @allure.feature('Feature1', 'Feature2')
+    @allure.feature('Feature3')
+    def test_a():
+        pass
+
+    @allure.story('Story1', 'Story2')
+    @allure.story('Story3')
+    def test_b():
+        pass
+    """)
+
+    assert_that(report, all_of(
+        has_label('test_a', 'feature', 'Feature1'),
+        has_label('test_a', 'feature', 'Feature2'),
+        has_label('test_a', 'feature', 'Feature3'),
+        has_label('test_b', 'story', 'Story1'),
+        has_label('test_b', 'story', 'Story2'),
+        has_label('test_b', 'story', 'Story3')))
+
+
+@pytest.mark.parametrize('features, stories, expected_failure',
+                         [(None, None, (False, False, False)),
+                          ('Feature1', 'Story1,Story2', (False, False, True)),
+                          (None, 'Story1', (False, False, True)),
+                          ('Feature2', None, (True, False, True))])
+def test_specified_feature_and_story(report_for, features, stories, expected_failure):
+    """
+    Checks that tests with specified Feature or Story marks will be run.
+    """
+
+    extra_run_args = list()
+    if features:
+        extra_run_args.extend(['--allure_features', features])
+    if stories:
+        extra_run_args.extend(['--allure_stories', stories])
+
+    report = report_for("""
+    import allure
+
+    @allure.feature('Feature1')
+    @allure.story('Story1', 'Story2')
+    def test_a():
+        pass
+
+    @allure.feature('Feature1')
+    @allure.feature('Feature2')
+    @allure.story('Story1')
+    def test_b():
+        pass
+
+    def test_c():
+        pass
+    """, extra_run_args=extra_run_args)
+
+    for test_num, test_name in enumerate(['test_a', 'test_b', 'test_c']):
+        if expected_failure[test_num]:
+            # Dynamically collecting skip message.
+            skipped_message = ["('feature', '%s')" % feature.strip() for feature in (features.split(',') if features else ())]
+            skipped_message.extend(["('story', '%s')" % story.strip() for story in (stories.split(',') if stories else ())])
+            skipped_message = 'Skipped: Not suitable with selected labels: %s.' % ', '.join(skipped_message)
+
+            assert_that(report, has_failure(test_name, skipped_message))
+        else:
+            assert_that(report, is_not(has_failure(test_name)))

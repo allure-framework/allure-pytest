@@ -10,8 +10,7 @@ Created on Oct 22, 2013
 from lxml import etree
 
 
-from allure.utils import Attribute, xmlfied, Element, Nested, \
-    Many
+from allure.rules import Attribute, xmlfied, Element, Nested, Many
 from hamcrest.core.assert_that import assert_that
 from hamcrest.library.text.stringcontainsinorder import string_contains_in_order
 from hamcrest.core.core.allof import all_of
@@ -43,15 +42,15 @@ def test_nested():
     t = Top(foo=d)
 
     assert_that(etree.tostring(t.toxml()), string_contains_in_order(
-                                                           '<top>',
-                                                           '<down',
-                                                           'baz=', '"456"',
-                                                           '<bar>',
-                                                           '123',
-                                                           '</bar>',
-                                                           '</down>',
-                                                           '</top>'
-                                                           ))
+        '<top>',
+        '<down',
+        'baz=', '"456"',
+        '<bar>',
+        '123',
+        '</bar>',
+        '</down>',
+        '</top>'
+    ))
 
 
 def test_many_elements():
@@ -60,10 +59,10 @@ def test_many_elements():
     box = Box(foos=['a', 'b', 'c'])
 
     assert_that(etree.tostring(box.toxml()), all_of(
-                                                    string_contains_in_order('<box>', '<foos>', '<foo>', 'a', '</foo>', '</foos>', '</box>'),
-                                                    string_contains_in_order('<box>', '<foos>', '<foo>', 'b', '</foo>', '</foos>', '</box>'),
-                                                    string_contains_in_order('<box>', '<foos>', '<foo>', 'c', '</foo>', '</foos>', '</box>'),
-                                                    ))
+        string_contains_in_order('<box>', '<foos>', '<foo>', 'a', '</foo>', '</foos>', '</box>'),
+        string_contains_in_order('<box>', '<foos>', '<foo>', 'b', '</foo>', '</foos>', '</box>'),
+        string_contains_in_order('<box>', '<foos>', '<foo>', 'c', '</foo>', '</foos>', '</box>')
+    ))
 
 
 def test_many_nested():
@@ -76,31 +75,31 @@ def test_many_nested():
     box.items.append(Item('a'))
 
     assert_that(etree.tostring(box.toxml()), all_of(
-                                                    string_contains_in_order('<box>',
-                                                                             '<items>',
-                                                                             '<item>', 'a', '</item>',
-                                                                             '<item>', 'a', '</item>',
-                                                                             '<item>', 'a', '</item>',
-                                                                             '</items>',
-                                                                             '</box>'),
-                                                    ))
+        string_contains_in_order('<box>',
+                                 '<items>',
+                                 '<item>', 'a', '</item>',
+                                 '<item>', 'a', '</item>',
+                                 '<item>', 'a', '</item>',
+                                 '</items>',
+                                 '</box>'),
+    ))
 
 
 def test_elements_order():
     Foo = xmlfied('foo', fields=[
-                                  ('bar', Element()),
-                                  ('baz', Element()),
-                                  ('gaz', Element()),
-                                  ('daz', Element())])
+        ('bar', Element()),
+        ('baz', Element()),
+        ('gaz', Element()),
+        ('daz', Element())])
 
     foo = Foo(bar=3, baz=4, gaz=5, daz=6)
 
     assert_that(etree.tostring(foo.toxml()), string_contains_in_order(
-                                                                      '<bar>', '3', '</bar>',
-                                                                      '<baz>', '4', '</baz>',
-                                                                      '<gaz>', '5', '</gaz>',
-                                                                      '<daz>', '6', '</daz>'
-                                                                      ))
+        '<bar>', '3', '</bar>',
+        '<baz>', '4', '</baz>',
+        '<gaz>', '5', '</gaz>',
+        '<daz>', '6', '</daz>'
+    ))
 
 
 def test_optional():

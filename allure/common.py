@@ -126,7 +126,8 @@ class AllureImpl(object):
         step = self.stack.pop()
         step.stop = now()
 
-    def start_case(self, name, description=None, severity=Severity.NORMAL):
+    def start_case(self, name, description=None, severity=Severity.NORMAL,
+                   labels=None):
         """
         Starts a new :py:class:`allure.structure.TestCase`
         """
@@ -135,6 +136,7 @@ class AllureImpl(object):
                         severity=severity,
                         start=now(),
                         attachments=[],
+                        labels=labels or [],
                         steps=[])
         self.stack.append(test)
 
@@ -159,7 +161,7 @@ class AllureImpl(object):
 
         return test
 
-    def start_suite(self, name, description=None, title=None):
+    def start_suite(self, name, description=None, title=None, labels=None):
         """
         Starts a new Suite with given ``name`` and ``description``
         """
@@ -167,6 +169,7 @@ class AllureImpl(object):
                                    title=title,
                                    description=description,
                                    tests=[],
+                                   labels=labels or [],
                                    start=now())
 
     def stop_suite(self):

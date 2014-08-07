@@ -6,7 +6,7 @@ Created on Oct 23, 2013
 @author: pupssman
 '''
 
-from allure.utils import xmlfied, Attribute, Element, Many, Nested
+from allure.rules import xmlfied, Attribute, Element, Many, Nested
 from allure.constants import ALLURE_NAMESPACE
 
 
@@ -28,6 +28,7 @@ TestCase = xmlfied('test-case',
                    failure=Nested().if_(lambda x: x),
                    steps=Many(Nested()),
                    attachments=Many(Nested()),
+                   labels=Many(Nested()),
                    status=Attribute(),
                    start=Attribute(),
                    stop=Attribute(),
@@ -40,6 +41,7 @@ TestSuite = xmlfied('test-suite',
                     title=Element().if_(lambda x: x),
                     description=Element().if_(lambda x: x),
                     tests=Many(Nested(), name='test-cases'),
+                    labels=Many(Nested()),
                     start=Attribute(),
                     stop=Attribute())
 
@@ -52,3 +54,7 @@ TestStep = xmlfied('step',
                    start=Attribute(),
                    stop=Attribute(),
                    status=Attribute())
+
+TestLabel = xmlfied('label',
+                    name=Attribute(),
+                    value=Attribute())
