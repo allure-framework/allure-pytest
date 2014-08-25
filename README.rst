@@ -9,9 +9,10 @@ Allure Pytest Adaptor
         :target: https://pypi.python.org/pypi/pytest-allure-adaptor
 
 This repository contains a plugin for ``py.test`` which automatically prepares input data used to generate ``Allure Report``.
+**Note:** this plugin only supports Allure 1.3.x series.
 
-Usage
-=====
+Installation and Usage
+======================
 .. code:: python
 
  py.test --alluredir [path_to_report_dir]
@@ -27,8 +28,8 @@ Connecting to IDE:
  pytest_plugins = 'allure.pytest_plugin',\
 
 
-Advanced usage
-==============
+Allure Features
+===============
 
 Attachments
 ===========
@@ -161,7 +162,7 @@ To run tests by Feature or Story:
  py.test my_tests/ --allure_features=feature1,feature2
  py.test my_tests/ --allure_features=feature1,feature2 --allure_stories=story1,story2
 
-Extending
-=========
+Development
+===========
 
 Use ``allure.common.AllureImpl`` class to bind your logic to this adapter.
