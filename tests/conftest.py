@@ -30,7 +30,7 @@ def reports_for(testdir, reportdir, schema):
     parses all the XML, validates them against ``schema`` and
     :returns list of :py:module:`lxml.objectify`-parsed reports
     """
-    def impl(body='', extra_run_args=[], extra_plugins=(), **kw):
+    def impl(body='', extra_run_args=[], **kw):
         testdir.makepyfile(body, **kw)
 
         resultpath = str(reportdir)
