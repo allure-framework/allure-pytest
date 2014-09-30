@@ -2,8 +2,8 @@ language: python
 python:
  - "2.7"
 script: py.test
-install: "pip install lxml pyhamcrest"
+install: "pip install ."
 notifications:
  email:
   - m.mavlyutov@gmail.com
-
+  - pupssman@gmail.com
