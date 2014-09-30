@@ -2,7 +2,7 @@ language: python
 python:
 - '2.7'
 script: tox
-install: pip tox
+install: pip install tox
 notifications:
   email:
   - m.mavlyutov@gmail.com
