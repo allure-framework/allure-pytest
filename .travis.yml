@@ -1,9 +1,16 @@
 language: python
 python:
- - "2.7"
+- '2.7'
 script: py.test tests
-install: "pip install lxml pyhamcrest"
+install: pip install lxml pyhamcrest
 notifications:
- email:
+  email:
   - m.mavlyutov@gmail.com
   - pupssman@gmail.com
+deploy:
+  provider: pypi
+  user: mavlyutov
+  password:
+    secure: Aimu/wB30KsebRDHFLJdo5M6AsrKfhl6dL5wrdbFMeyklx6us18Rg6KD+KagjrHwVzxMifi2O/ael7YKSXN6nGXFo0VQCG3CNPYCnRvgLqh1IFTMvmVpWn3R4J7oi+UKc40Ipeaq+3yuZo+ssESXpjQIwIBMxifSA78Q3hqmgWA=
+  on:
+    repo: allure-framework/allure-python
