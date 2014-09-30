@@ -1,8 +1,8 @@
 language: python
 python:
 - '2.7'
-script: py.test tests
-install: pip install lxml pyhamcrest
+script: tox
+install: pip tox
 notifications:
   email:
   - m.mavlyutov@gmail.com
