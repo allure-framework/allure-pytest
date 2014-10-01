@@ -34,7 +34,7 @@ def reports_for(testdir, reportdir, schema):
         testdir.makepyfile(body, **kw)
 
         resultpath = str(reportdir)
-        testdir.runpytest("--alluredir", resultpath, *extra_run_args)
+        testdir.inline_run("--alluredir", resultpath, *extra_run_args)
 
         files = [os.path.join(resultpath, f) for f in os.listdir(resultpath) if '-testsuite.xml' in f]
 
