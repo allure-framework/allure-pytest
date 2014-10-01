@@ -214,10 +214,7 @@ class AllureImpl(object):
         reportpath = os.path.join(self.logdir, filename)
         encoding = 'utf-8'
 
-        if py.std.sys.version_info[0] < 3:  # @UndefinedVariable
-            logfile = py.std.codecs.open(reportpath, 'w', encoding=encoding)  # @UndefinedVariable
-        else:
-            logfile = open(reportpath, 'w', encoding=encoding)
+        logfile = py.std.codecs.open(reportpath, 'w', encoding=encoding)  # @UndefinedVariable
 
         try:
             yield logfile
