@@ -17,12 +17,12 @@ setup(
     description=("Plugin for py.test to generate allure xml reports"),
     author="pupssman",
     author_email="pupssman@yandex-team.ru",
-    packages=["allure", "allure.contrib"],
+    packages=["allure"],
     url="https://github.com/allure-framework/allure-python",
     long_description=read('README.rst'),
     entry_points={'pytest11': ['allure_adaptor = allure.pytest_plugin']},
     install_requires=[
         "lxml>=3.2.0",
         "pytest>=2.4.1",
-        "pyhamcrest"]
+        "recordtype"]
 )

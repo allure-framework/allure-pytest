@@ -6,8 +6,7 @@ import re
 import sys
 
 from lxml import objectify
-
-from allure.contrib.recordtype import recordtype
+from recordtype import recordtype
 
 
 def element_maker(name, namespace):
