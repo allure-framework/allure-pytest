@@ -13,4 +13,5 @@ deploy:
   password:
     secure: Aimu/wB30KsebRDHFLJdo5M6AsrKfhl6dL5wrdbFMeyklx6us18Rg6KD+KagjrHwVzxMifi2O/ael7YKSXN6nGXFo0VQCG3CNPYCnRvgLqh1IFTMvmVpWn3R4J7oi+UKc40Ipeaq+3yuZo+ssESXpjQIwIBMxifSA78Q3hqmgWA=
   on:
-    repo: allure-framework/allure-python
+    tags: true
+    all_branches: true
