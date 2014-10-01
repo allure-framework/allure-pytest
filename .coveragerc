@@ -1,0 +1,7 @@
+[run]
+omit = allure/adaptor.py
+
+[report]
+exclude_lines =
+    raise NotImplemented
+    raise argparse.ArgumentTypeError
