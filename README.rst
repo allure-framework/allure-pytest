@@ -1,6 +1,9 @@
 Allure Pytest Adaptor
 =====================
 
+.. image:: https://travis-ci.org/allure-framework/allure-python.svg?branch=master
+        :alt: Build Status
+        :target: https://travis-ci.org/allure-framework/allure-python/
 .. image:: https://pypip.in/v/pytest-allure-adaptor/badge.png
         :alt: Release Status
         :target: https://pypi.python.org/pypi/pytest-allure-adaptor
@@ -130,7 +133,7 @@ To run tests with concrete priority:
  py.test my_tests/ --allure_severities=critical,blocker
 
 Features & Stories
-========
+==================
 
 Feature and Story can be set for test.
 

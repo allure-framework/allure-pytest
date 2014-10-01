@@ -1,0 +1,8 @@
+[run]
+# this is a backward-compatibility stub, dont analyze it
+omit = allure/adaptor.py
+
+[report]
+exclude_lines =
+    raise NotImplemented
+    raise argparse.ArgumentTypeError

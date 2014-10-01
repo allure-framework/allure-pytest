@@ -5,7 +5,6 @@ from lxml import etree, objectify
 
 from hamcrest.core.helpers.wrap_matcher import wrap_matcher
 from hamcrest.core.base_matcher import BaseMatcher
-import allure
 
 pytest_plugins = ["pytester"]
 
@@ -31,24 +30,11 @@ def reports_for(testdir, reportdir, schema):
     parses all the XML, validates them against ``schema`` and
     :returns list of :py:module:`lxml.objectify`-parsed reports
     """
-    def impl(body='', extra_run_args=[], extra_plugins=(), **kw):
-        testdir.makeconftest("""
-        import sys
-
-        # FIXME: THIS IS HOLY FUCKING SHIT, need to investigate why pytest adds this extra path
-        EVIL = '/usr/share/pyshared'
-        if EVIL in sys.path:
-            sys.path.remove(EVIL)
-
-        sys.path.insert(0, '%s')
-
-        pytest_plugins = [%s]
-        """ % (os.path.dirname(os.path.dirname(allure.__file__)),
-               ", ".join(map(lambda p: "'{0}'".format(p), list(extra_plugins) + ['allure.adaptor']))))
+    def impl(body='', extra_run_args=[], **kw):
         testdir.makepyfile(body, **kw)
 
         resultpath = str(reportdir)
-        testdir.runpytest("--alluredir", resultpath, *extra_run_args)
+        testdir.inline_run("--alluredir", resultpath, *extra_run_args)
 
         files = [os.path.join(resultpath, f) for f in os.listdir(resultpath) if '-testsuite.xml' in f]
 

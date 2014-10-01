@@ -100,13 +100,37 @@ def test_fixture_step(timed_report_for):
     assert_that(report.findall('.//test-case/steps/step'), contains(step_with('fixture', start, stop, Status.PASSED)))
 
 
-def test_other_module_fixture_step(timed_report_for):
+def test_other_module_fixture_step(testdir, timed_report_for):
+    fixture_def_body = """
+import pytest
+import allure
+
+@pytest.fixture(scope='session')
+def allure_test_fixture():
+    '''
+    This is a fixture used by test checking lazy initialization of steps context.
+    It must be in a separate module, to be initialized before pytest configure stage.
+    Don't move it to tests code.
+    '''
+    return allure_test_fixture_impl()
+
+
+class allure_test_fixture_impl():
+
+    @allure.step('allure_test_fixture_step')
+    def test(self):
+        print "Hello"
+
+"""
+    testdir.makepyfile(util_fixture=fixture_def_body)
+    testdir.makeconftest("pytest_plugins = 'util_fixture'")
+
     report, start, stop = timed_report_for("""
     import pytest
 
     def test_other_module_fixture(allure_test_fixture):
         allure_test_fixture.test()
-    """, extra_plugins=['tests.libs.util_fixture'])
+    """)
 
     assert_that(report.findall('.//test-case/steps/step'), contains(step_with('allure_test_fixture_step', start, stop, Status.PASSED)))
 
