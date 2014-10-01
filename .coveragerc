@@ -1,4 +1,5 @@
 [run]
+# this is a backward-compatibility stub
 omit = allure/adaptor.py
 
 [report]
