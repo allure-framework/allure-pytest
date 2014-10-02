@@ -24,5 +24,6 @@ setup(
     install_requires=[
         "lxml>=3.2.0",
         "pytest>=2.4.1",
-        "recordtype"]
+        "recordtype",
+        "enum34"]
 )

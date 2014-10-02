@@ -27,7 +27,7 @@ class StepContext:
         if self.allure:
             self.step = self.allure.start_step(self.title)
 
-    def __exit__(self, exc_type, exc_val, exc_tb):  # @UnusedVariable
+    def __exit__(self, exc_type, exc_val, exc_tb):
         if self.allure:
             if exc_type is not None:
                 if exc_type == Skipped:
@@ -102,7 +102,7 @@ class AllureImpl(object):
         """
         attach = Attach(source=self._save_attach(contents, attach_type=attach_type),
                         title=title,
-                        type=attach_type)
+                        type=attach_type.mime_type)
         self.stack[-1].attachments.append(attach)
 
     def start_step(self, name):
@@ -126,14 +126,12 @@ class AllureImpl(object):
         step = self.stack.pop()
         step.stop = now()
 
-    def start_case(self, name, description=None, severity=Severity.NORMAL,
-                   labels=None):
+    def start_case(self, name, description=None, labels=None):
         """
         Starts a new :py:class:`allure.structure.TestCase`
         """
         test = TestCase(name=name,
                         description=description,
-                        severity=severity,
                         start=now(),
                         attachments=[],
                         labels=labels or [],
@@ -187,9 +185,7 @@ class AllureImpl(object):
 
         :arg body: str or unicode with contents. str is written as-is in byte stream, unicode is written as utf-8 (what do you expect else?)
         """
-
-        # FIXME: we should generate attachment name properly
-        with self._attachfile("%s-attachment.%s" % (uuid.uuid4(), attach_type)) as f:
+        with self._attachfile("%s-attachment.%s" % (uuid.uuid4(), attach_type.extension)) as f:
             if isinstance(body, unicode):
                 f.write(body.encode('utf-8'))
             else:
@@ -214,7 +210,7 @@ class AllureImpl(object):
         reportpath = os.path.join(self.logdir, filename)
         encoding = 'utf-8'
 
-        logfile = py.std.codecs.open(reportpath, 'w', encoding=encoding)  # @UndefinedVariable
+        logfile = py.std.codecs.open(reportpath, 'w', encoding=encoding)
 
         try:
             yield logfile

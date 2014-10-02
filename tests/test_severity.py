@@ -6,10 +6,16 @@ Created on Nov 8, 2013
 @author: pupssman
 """
 
-from hamcrest import assert_that, contains, all_of, has_entry, has_property
+from hamcrest import assert_that, contains, all_of, has_entry, has_property, has_properties
 from allure.constants import Severity, Status
 from allure import utils
 import pytest
+
+
+def severity_of_value(value):
+    return has_properties(attrib=all_of(
+                            has_entry('name', 'severity'),
+                            has_entry('value', value)))
 
 
 @pytest.mark.parametrize('mark_way', [
@@ -26,7 +32,7 @@ def test_method_severity(report_for, name, value, mark_way):
         pass
     """ % (mark_way % name))
 
-    assert_that(report.xpath(".//test-case/@severity"), contains(value))
+    assert_that(report.findall(".//test-case/labels/label"), contains(severity_of_value(value)))
 
 
 def test_class_severity(report_for):
