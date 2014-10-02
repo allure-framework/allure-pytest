@@ -5,6 +5,7 @@ from lxml import etree, objectify
 
 from hamcrest.core.helpers.wrap_matcher import wrap_matcher
 from hamcrest.core.base_matcher import BaseMatcher
+from hamcrest import equal_to, has_property, has_properties, has_item, anything
 
 pytest_plugins = ["pytester"]
 
@@ -74,3 +75,15 @@ class HasFloat(BaseMatcher):
 
 def has_float(match):
     return HasFloat(wrap_matcher(match))
+
+
+def has_label(test_name, label_name=anything(), label_value=anything()):
+    return has_property('{}test-cases',
+                        has_property('test-case',
+                                     has_item(
+                                         has_properties({'name': equal_to(test_name),
+                                                         'labels': has_property('label',
+                                                                                has_item(
+                                                                                    has_property('attrib', equal_to(
+                                                                                        {'name': label_name,
+                                                                                         'value': label_value}))))}))))

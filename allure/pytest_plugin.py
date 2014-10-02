@@ -23,12 +23,12 @@ def pytest_addoption(parser):
 
     severities = [v for (_, v) in all_of(Severity)]
 
-    def severity_type(string):
-        entries = [x.strip() for x in string.split(',')]
+    def severity_label_type(string):
+        entries = LabelsList([TestLabel(name=Label.SEVERITY, value=x) for x in string.split(',')])
 
         for entry in entries:
-            if entry not in severities:
-                raise argparse.ArgumentTypeError('Illegal severity value [%s], only values from [%s] are allowed.' % (entry, ', '.join(severities)))
+            if entry.value not in severities:
+                raise argparse.ArgumentTypeError('Illegal severity value [%s], only values from [%s] are allowed.' % (entry.value, ', '.join(severities)))
 
         return entries
 
@@ -43,7 +43,7 @@ def pytest_addoption(parser):
                                          dest="allureseverities",
                                          metavar="SEVERITIES_LIST",
                                          default=LabelsList(),
-                                         type=severity_type,
+                                         type=severity_label_type,
                                          help="""Comma-separated list of severity names.
                                          Tests only with these severities will be run.
                                          Possible values are:%s.""" % ', '.join(severities))
