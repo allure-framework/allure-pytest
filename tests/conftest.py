@@ -9,7 +9,7 @@ pytest_plugins = ["pytester"]
 @pytest.fixture
 def schema():
     """
-    schema copyied from https://github.com/allure-framework/allure-core/blob/allure-core-1.4.1/allure-model/src/main/resources/allure.xsd
+    schema copied from https://github.com/allure-framework/allure-core/blob/allure-core-1.4.1/allure-model/src/main/resources/allure.xsd
     Returns :py:class:`lxml.etree.XMLSchema` object configured with schema for reports
     """
     path_to_schema = os.path.join(os.path.dirname(__file__), 'allure.xsd')
