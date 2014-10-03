@@ -9,8 +9,8 @@ Created on Nov 8, 2013
 from hamcrest import assert_that, contains, all_of, has_entry, has_property, has_properties, contains_inanyorder, has_item, equal_to
 from allure.constants import Severity, Status
 from allure import utils
+from matchers import has_label
 import pytest
-from conftest import has_label
 
 
 def severity_element(value):

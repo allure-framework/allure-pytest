@@ -10,10 +10,10 @@ import os
 import time
 import pytest
 
-from hamcrest import is_, assert_that, contains, has_property, all_of, has_entry, greater_than, less_than, has_entries, contains_inanyorder, is_not, has_items, starts_with
+from hamcrest import is_, assert_that, contains, has_property, all_of, has_entry, greater_than, less_than, \
+    has_entries, contains_inanyorder, is_not, has_items, starts_with
 from allure.constants import Status
-
-from conftest import has_float
+from matchers import has_float
 
 
 @pytest.mark.parametrize('statement', ['assert 1', 'assert 0',

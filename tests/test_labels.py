@@ -7,7 +7,7 @@ Created on Jun 5, 2014
 """
 
 import pytest
-from conftest import has_label
+from matchers import has_label
 from hamcrest import assert_that, equal_to, has_length, is_not, has_property, has_properties, has_item, anything, all_of, any_of
 
 
