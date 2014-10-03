@@ -15,7 +15,7 @@ from traceback import format_exception_only
 
 from _pytest.python import Module
 
-from allure.constants import Severity, Label
+from allure.constants import Label
 from allure.structure import TestLabel
 
 
@@ -58,14 +58,6 @@ def now():
     Return current time in the allure-way representation. No further conversion required.
     """
     return sec2ms(time.time())
-
-
-def severity_of(item):
-    severity_marker = item.get_marker('allure_severity')
-    if severity_marker:
-        return severity_marker.args[0]
-    else:
-        return Severity.NORMAL
 
 
 def labels_of(item):

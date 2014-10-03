@@ -12,7 +12,7 @@ from _pytest.runner import Skipped
 from lxml import etree
 import py
 
-from allure.constants import AttachmentType, Severity, Status
+from allure.constants import AttachmentType, Status
 from allure.structure import Attach, TestStep, TestCase, TestSuite, Failure
 from allure.utils import now
 
