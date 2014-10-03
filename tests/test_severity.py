@@ -6,10 +6,21 @@ Created on Nov 8, 2013
 @author: pupssman
 """
 
-from hamcrest import assert_that, contains, all_of, has_entry, has_property
+from hamcrest import assert_that, contains, all_of, has_entry, has_property, has_properties, contains_inanyorder, has_item, equal_to
 from allure.constants import Severity, Status
 from allure import utils
+from matchers import has_label
 import pytest
+
+
+def severity_element(value):
+    return has_properties(attrib=all_of(
+                            has_entry('name', 'severity'),
+                            has_entry('value', value)))
+
+
+def has_test_with_severity(test_name, severity_level):
+    return has_label(test_name, label_value=severity_level, label_name='severity')
 
 
 @pytest.mark.parametrize('mark_way', [
@@ -26,7 +37,7 @@ def test_method_severity(report_for, name, value, mark_way):
         pass
     """ % (mark_way % name))
 
-    assert_that(report.xpath(".//test-case/@severity"), contains(value))
+    assert_that(report.findall(".//test-case/labels/label"), contains(severity_element(value)))
 
 
 def test_class_severity(report_for):
@@ -47,7 +58,11 @@ def test_class_severity(report_for):
             pass
     """)
 
-    assert_that(report.xpath(".//test-case/@severity"), contains(Severity.CRITICAL, Severity.TRIVIAL))
+    assert_that(report, all_of(
+        has_test_with_severity('TestMy.test_a', Severity.CRITICAL),
+        has_test_with_severity('TestMy.test_b', Severity.TRIVIAL),
+        has_test_with_severity('TestMy.test_b', Severity.CRITICAL)
+    ))
 
 
 def test_module_severity(report_for):
@@ -77,7 +92,16 @@ def test_module_severity(report_for):
             pass
     """)
 
-    assert_that(report.xpath(".//test-case/@severity"), contains(Severity.MINOR, Severity.NORMAL, Severity.CRITICAL, Severity.TRIVIAL))
+    assert_that(report, all_of(
+        has_test_with_severity('test_m', Severity.MINOR),
+        has_test_with_severity('test_n', Severity.MINOR),
+        has_test_with_severity('test_n', Severity.NORMAL),
+        has_test_with_severity('TestMy.test_a', Severity.MINOR),
+        has_test_with_severity('TestMy.test_a', Severity.CRITICAL),
+        has_test_with_severity('TestMy.test_b', Severity.MINOR),
+        has_test_with_severity('TestMy.test_b', Severity.CRITICAL),
+        has_test_with_severity('TestMy.test_b', Severity.TRIVIAL)
+    ))
 
 
 @pytest.mark.parametrize('severities', [
@@ -98,19 +122,18 @@ def test_run_only(report_for, severities):
     def test_a():
         pass
 
+    @pytest.allure.MINOR
     def test_b():
         pass
 
-    @pytest.allure.MINOR
     def test_c():
         pass
     """, extra_run_args=['--allure_severities', ','.join(severities)])
 
-    a_status, b_status, c_status = [Status.PASSED if s in severities else Status.SKIPPED for s in [Severity.CRITICAL, Severity.NORMAL, Severity.MINOR]]
+    a_status, b_status, c_status = [Status.PASSED if s in severities else Status.SKIPPED for s in [Severity.CRITICAL, Severity.MINOR, '']]
 
-    assert_that(report.xpath(".//test-case"), contains(all_of(has_property('name', 'test_a'),
-                                                            has_property('attrib', has_entry('status', a_status))),
-                                                     all_of(has_property('name', 'test_b'),
-                                                            has_property('attrib', has_entry('status', b_status))),
-                                                     all_of(has_property('name', 'test_c'),
-                                                            has_property('attrib', has_entry('status', c_status)))))
+    assert_that(report.xpath(".//test-case"), contains(
+        all_of(has_property('name', 'test_a'), has_property('attrib', has_entry('status', a_status))),
+        all_of(has_property('name', 'test_b'), has_property('attrib', has_entry('status', b_status))),
+        all_of(has_property('name', 'test_c'), has_property('attrib', has_entry('status', c_status)))
+    ))

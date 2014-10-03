@@ -8,8 +8,8 @@ from allure.common import AllureImpl, StepContext
 from allure.utils import LabelsList
 from allure.constants import Status, AttachmentType, Severity, \
     FAILED_STATUSES, Label
-from allure.utils import parent_module, parent_down_from_module, severity_of, \
-    labels_of, all_of, get_exception_message
+from allure.utils import parent_module, parent_down_from_module, labels_of, \
+    all_of, get_exception_message
 from allure.structure import TestLabel
 
 
@@ -23,12 +23,12 @@ def pytest_addoption(parser):
 
     severities = [v for (_, v) in all_of(Severity)]
 
-    def severity_type(string):
-        entries = [x.strip() for x in string.split(',')]
+    def severity_label_type(string):
+        entries = LabelsList([TestLabel(name=Label.SEVERITY, value=x) for x in string.split(',')])
 
         for entry in entries:
-            if entry not in severities:
-                raise argparse.ArgumentTypeError('Illegal severity value [%s], only values from [%s] are allowed.' % (entry, ', '.join(severities)))
+            if entry.value not in severities:
+                raise argparse.ArgumentTypeError('Illegal severity value [%s], only values from [%s] are allowed.' % (entry.value, ', '.join(severities)))
 
         return entries
 
@@ -42,8 +42,8 @@ def pytest_addoption(parser):
                                          action="store",
                                          dest="allureseverities",
                                          metavar="SEVERITIES_LIST",
-                                         default=None,
-                                         type=severity_type,
+                                         default=LabelsList(),
+                                         type=severity_label_type,
                                          help="""Comma-separated list of severity names.
                                          Tests only with these severities will be run.
                                          Possible values are:%s.""" % ', '.join(severities))
@@ -77,15 +77,10 @@ def pytest_configure(config):
 
 
 def pytest_runtest_setup(item):
-    severity = severity_of(item)
     item_labels = labels_of(item)
 
     option = item.config.option
-    if option.allureseverities and severity not in \
-            option.allureseverities:
-        pytest.skip("Not running test of severity %s." % severity)
-
-    arg_labels = option.allurefeatures + option.allurestories
+    arg_labels = option.allurefeatures + option.allurestories + option.allureseverities
 
     if arg_labels and not item_labels & arg_labels:
         pytest.skip('Not suitable with selected labels: %s.' % arg_labels)
@@ -123,12 +118,6 @@ class AllureHelper(object):
         if self._allurelistener:
             self._allurelistener.attach(name, contents, type)
 
-    def severity(self, level):
-        """
-        A decorator factory that returns ``pytest.mark`` for a given allure ``level``.
-        """
-        return pytest.mark.allure_severity(level)
-
     def label(self, name, *value):
         """
         A decorator factory that returns ``pytest.mark`` for a given label.
@@ -137,6 +126,12 @@ class AllureHelper(object):
         allure_label = getattr(pytest.mark, '%s.%s' %
                                (Label.DEFAULT, name.encode('utf-8', 'ignore')))
         return allure_label(*value)
+
+    def severity(self, severity):
+        """
+        A decorator factory that returns ``pytest.mark`` for a given allure ``level``.
+        """
+        return self.label(Label.SEVERITY, severity)
 
     def feature(self, *features):
         """
@@ -277,8 +272,7 @@ class AllureTestListener(object):
             self.testsuite = 'Yes'
 
         name = '.'.join(mangle_testnames([x.name for x in parent_down_from_module(item)]))
-        self.impl.start_case(name, description=item.function.__doc__, severity=severity_of(item),
-                             labels=labels_of(item))
+        self.impl.start_case(name, description=item.function.__doc__, labels=labels_of(item))
         result = __multicall__.execute()
 
         if not nextitem or parent_module(item) != parent_module(nextitem):

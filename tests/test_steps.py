@@ -12,7 +12,7 @@ from hamcrest import assert_that, has_property, has_entry, has_properties, conta
 from hamcrest.library.number.ordering_comparison import greater_than_or_equal_to, \
     less_than_or_equal_to
 from hamcrest.core.core.allof import all_of
-from tests.conftest import has_float
+from matchers import has_float
 from allure.constants import Status
 import pytest
 

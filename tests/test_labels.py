@@ -7,19 +7,8 @@ Created on Jun 5, 2014
 """
 
 import pytest
+from matchers import has_label
 from hamcrest import assert_that, equal_to, has_length, is_not, has_property, has_properties, has_item, anything, all_of, any_of
-
-
-def has_label(test_name, label_name=anything(), label_value=anything()):
-    return has_property('{}test-cases',
-                        has_property('test-case',
-                                     has_item(
-                                         has_properties({'name': equal_to(test_name),
-                                                         'labels': has_property('label',
-                                                                                has_item(
-                                                                                    has_property('attrib', equal_to(
-                                                                                        {'name': label_name,
-                                                                                         'value': label_value}))))}))))
 
 
 def has_label_length(test_name, label_length):

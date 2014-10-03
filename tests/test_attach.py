@@ -36,7 +36,7 @@ def test_attach_types(report_for, a_type):
         A.attach('Foo', 'Bar', A.attach_type.%s)
     """ % a_type)
 
-    assert_that(report.find('.//attachment').attrib, has_entries(title='Foo', type=getattr(AttachmentType, a_type)))
+    assert_that(report.find('.//attachment').attrib, has_entries(title='Foo', type=getattr(AttachmentType, a_type).mime_type))
 
 
 class TestContents:

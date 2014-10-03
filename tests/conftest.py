@@ -3,15 +3,13 @@ import pytest
 
 from lxml import etree, objectify
 
-from hamcrest.core.helpers.wrap_matcher import wrap_matcher
-from hamcrest.core.base_matcher import BaseMatcher
-
 pytest_plugins = ["pytester"]
 
 
 @pytest.fixture
 def schema():
     """
+    schema copied from https://github.com/allure-framework/allure-core/blob/allure-core-1.4.1/allure-model/src/main/resources/allure.xsd
     Returns :py:class:`lxml.etree.XMLSchema` object configured with schema for reports
     """
     path_to_schema = os.path.join(os.path.dirname(__file__), 'allure.xsd')
@@ -57,20 +55,3 @@ def report_for(reports_for):
 
         return reports[0]
     return impl
-
-
-class HasFloat(BaseMatcher):
-
-    def __init__(self, str_matcher):
-        self.str_matcher = str_matcher
-
-    def _matches(self, item):
-        return self.str_matcher.matches(float(item))
-
-    def describe_to(self, description):
-        description.append_text('an object with float ')          \
-                    .append_description_of(self.str_matcher)
-
-
-def has_float(match):
-    return HasFloat(wrap_matcher(match))

@@ -5,6 +5,23 @@ Created on Oct 15, 2013
 
 @author: pupssman
 '''
+from enum import Enum
+
+
+class Status:
+    FAILED = 'failed'
+    BROKEN = 'broken'
+    PASSED = 'passed'
+    SKIPPED = 'canceled'
+    CANCELED = 'canceled'
+    PENDING = 'pending'
+
+
+class Label:
+    DEFAULT = 'allure_label'
+    FEATURE = 'feature'
+    STORY = 'story'
+    SEVERITY = 'severity'
 
 
 class Severity:
@@ -15,30 +32,19 @@ class Severity:
     TRIVIAL = 'trivial'
 
 
-class Status:
-    FAILED = 'failed'
-    BROKEN = 'broken'
-    PASSED = 'passed'
-    SKIPPED = 'skipped'
+class AttachmentType(Enum):
+    def __init__(self, mime_type, extension):
+        self.mime_type = mime_type
+        self.extension = extension
 
-
-FAILED_STATUSES = [Status.FAILED, Status.BROKEN]
-
-
-class AttachmentType:
-    TEXT = "txt"
-    HTML = "html"
-    XML = "xml"
-    PNG = "png"
-    JPG = "jpg"
-    JSON = "json"
-    OTHER = "other"
+    TEXT = ("text/plain", "txt")
+    HTML = ("application/html", "html")
+    XML = ("application/xml", "xml")
+    PNG = ("image/png", "png")
+    JPG = ("image/jpg", "jpg")
+    JSON = ("application/json", "json")
+    OTHER = ("other", "other")
 
 
 ALLURE_NAMESPACE = "urn:model.allure.qatools.yandex.ru"
-
-
-class Label:
-    DEFAULT = 'allure_label'
-    FEATURE = 'feature'
-    STORY = 'story'
+FAILED_STATUSES = [Status.FAILED, Status.BROKEN]

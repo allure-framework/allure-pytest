@@ -31,8 +31,7 @@ TestCase = xmlfied('test-case',
                    labels=Many(Nested()),
                    status=Attribute(),
                    start=Attribute(),
-                   stop=Attribute(),
-                   severity=Attribute())
+                   stop=Attribute())
 
 
 TestSuite = xmlfied('test-suite',
