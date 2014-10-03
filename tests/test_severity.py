@@ -122,22 +122,18 @@ def test_run_only(report_for, severities):
     def test_a():
         pass
 
+    @pytest.allure.MINOR
     def test_b():
         pass
 
-    @pytest.allure.MINOR
     def test_c():
         pass
     """, extra_run_args=['--allure_severities', ','.join(severities)])
 
-    a_status, b_status, c_status = [Status.PASSED if s in severities else Status.SKIPPED for s in [Severity.CRITICAL, Severity.NORMAL, Severity.MINOR]]
+    a_status, b_status, c_status = [Status.PASSED if s in severities else Status.SKIPPED for s in [Severity.CRITICAL, Severity.MINOR, '']]
 
-    assert_that(report, all_of(
-        has_test_with_severity('test_a', a_status),
-        has_test_with_severity('test_b', b_status),
-        has_test_with_severity('test_c', c_status)
+    assert_that(report.xpath(".//test-case"), contains(
+        all_of(has_property('name', 'test_a'), has_property('attrib', has_entry('status', a_status))),
+        all_of(has_property('name', 'test_b'), has_property('attrib', has_entry('status', b_status))),
+        all_of(has_property('name', 'test_c'), has_property('attrib', has_entry('status', c_status)))
     ))
-
-    # assert_that(report, contains(all_of(has_property('name', 'test_a'), has_property('attrib', has_entry('status', a_status))),
-    #                              all_of(has_property('name', 'test_b'), has_property('attrib', has_entry('status', b_status))),
-    #                              all_of(has_property('name', 'test_c'), has_property('attrib', has_entry('status', c_status)))))
