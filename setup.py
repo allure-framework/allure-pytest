@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 PACKAGE = "pytest-allure-adaptor"
-VERSION = "1.4.1"
+VERSION = "1.5.0"
 
 import os
 from setuptools import setup
