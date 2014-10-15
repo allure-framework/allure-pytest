@@ -148,7 +148,7 @@ class AllureHelper(object):
 
     def issue(self, *issues):
         """
-        A decorator factory that returns ``pytest.mark`` for a given stories.
+        A decorator factory that returns ``pytest.mark`` for a given issues.
         """
         return self.label(Label.ISSUE, *issues)
 

@@ -202,3 +202,19 @@ def test_specified_feature_and_story(report_for, features, stories, expected_fai
             assert_that(report, has_failure(test_name, skipped_message))
         else:
             assert_that(report, is_not(has_failure(test_name)))
+
+
+def test_issues(report_for):
+    """
+    Checks that feature and stories markers for tests are shown in report.
+    """
+    report = report_for("""
+    import allure
+
+    @allure.issue('Issue1')
+    def test_a(self):
+        pass
+    """)
+
+    assert_that(report, all_of(
+        has_label('test_a', 'issue', 'Issue1')))
