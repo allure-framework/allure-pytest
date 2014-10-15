@@ -206,7 +206,7 @@ def test_specified_feature_and_story(report_for, features, stories, expected_fai
 
 def test_issues(report_for):
     """
-    Checks that feature and stories markers for tests are shown in report.
+    Checks that issues markers for tests are shown in report.
     """
     report = report_for("""
     import allure
