@@ -221,9 +221,13 @@ def test_issues(report_for):
         @allure.issue('Issue3')
         def test_b(self):
             pass
+
+        def test_c(self):
+            pass
     """)
 
     assert_that(report, all_of(
         has_label('test_a', 'issue', 'Issue1'),
+        has_label('TestMy.test_b', 'issue', 'Issue2'),
         has_label('TestMy.test_b', 'issue', 'Issue3'),
-        has_label('test_a', 'issue', 'Issue1')))
+        has_label('TestMy.test_c', 'issue', 'Issue2')))
