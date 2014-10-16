@@ -132,6 +132,35 @@ To run tests with concrete priority:
 
  py.test my_tests/ --allure_severities=critical,blocker
 
+
+Issues
+======
+Issues can be set for test.
+
+.. code:: python
+
+ import pytest
+
+ @pytest.allure.issue('http://jira.lan/browse/ISSUE-1')
+ def test_foo():
+     assert False
+
+
+ import allure
+
+ @allure.issue('http://jira.lan/browse/ISSUE-2')
+ class TestBar:
+
+     # test will have ISSUE-2 and ISSUE-3 label
+     @allure.issue('http://jira.lan/browse/ISSUE-3')
+     def test_bar1(self):
+         pass
+
+     # test will have only ISSUE-2 label
+     def test_bar2(self):
+         pass
+
+
 Features & Stories
 ==================
 

@@ -22,6 +22,7 @@ class Label:
     FEATURE = 'feature'
     STORY = 'story'
     SEVERITY = 'severity'
+    ISSUE = 'issue'
 
 
 class Severity:
