@@ -12,7 +12,7 @@ Allure Pytest Adaptor
         :target: https://pypi.python.org/pypi/pytest-allure-adaptor
 
 This repository contains a plugin for ``py.test`` which automatically prepares input data used to generate ``Allure Report``.
-**Note:** this plugin only supports Allure 1.3.x series.
+**Note:** this plugin currently supports only Allure 1.4.x series.
 
 Installation and Usage
 ======================
