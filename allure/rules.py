@@ -88,15 +88,17 @@ class Nested(Rule):
 
 
 class Many(Rule):
-    def __init__(self, rule, name='', namespace=''):
+    def __init__(self, rule, name='', namespace='', with_root=True):
         self.rule = rule
         self.name = name
         self.namespace = namespace
+        self.with_root = with_root
 
     def value(self, name, what):
-        el = element_maker(self.name or name, self.namespace)
-
-        return el(*[self.rule.value(name, x) for x in what])
+        val = [self.rule.value(name, x) for x in what]
+        if self.with_root:
+            val = element_maker(self.name or name, self.namespace)(*val)
+        return val
 
 
 def xmlfied(el_name, namespace='', fields=[], **kw):

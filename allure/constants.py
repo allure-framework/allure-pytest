@@ -48,4 +48,5 @@ class AttachmentType(Enum):
 
 
 ALLURE_NAMESPACE = "urn:model.allure.qatools.yandex.ru"
+COMMON_NAMESPACE = "urn:model.commons.qatools.yandex.ru"
 FAILED_STATUSES = [Status.FAILED, Status.BROKEN]

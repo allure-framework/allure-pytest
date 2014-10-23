@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 '''
-Tests for various attachment thingys
+Tests for various attachment things
 
 Created on Oct 21, 2013
 

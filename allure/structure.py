@@ -7,7 +7,7 @@ Created on Oct 23, 2013
 '''
 
 from allure.rules import xmlfied, Attribute, Element, Many, Nested
-from allure.constants import ALLURE_NAMESPACE
+from allure.constants import ALLURE_NAMESPACE, COMMON_NAMESPACE
 
 
 Attach = xmlfied('attachment',
@@ -57,3 +57,16 @@ TestStep = xmlfied('step',
 TestLabel = xmlfied('label',
                     name=Attribute(),
                     value=Attribute())
+
+
+EnvParameter = xmlfied('parameter',
+                       name=Element(),
+                       key=Element(),
+                       value=Element())
+
+
+Environment = xmlfied('environment',
+                      namespace=COMMON_NAMESPACE,
+                      id=Element(),
+                      name=Element(),
+                      parameters=Many(Nested(), with_root=False))
