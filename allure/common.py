@@ -231,5 +231,5 @@ class AllureImpl(object):
         finally:
             logfile.close()
 
-    def _write_xml(self, logfile, xml):
-        logfile.write(etree.tostring(xml.toxml(), pretty_print=True, xml_declaration=False, encoding=unicode))
+    def _write_xml(self, logfile, xmlfied):
+        logfile.write(etree.tostring(xmlfied.toxml(), pretty_print=True, xml_declaration=False, encoding=unicode))

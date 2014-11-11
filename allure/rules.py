@@ -13,7 +13,7 @@ def element_maker(name, namespace):
     return getattr(objectify.ElementMaker(annotate=False, namespace=namespace,), name)
 
 
-class Rule:
+class Rule(object):
     _check = None
 
     def value(self, name, what):
@@ -88,17 +88,19 @@ class Nested(Rule):
 
 
 class Many(Rule):
-    def __init__(self, rule, name='', namespace='', with_root=True):
+    def __init__(self, rule, name='', namespace=''):
         self.rule = rule
         self.name = name
         self.namespace = namespace
-        self.with_root = with_root
 
     def value(self, name, what):
-        val = [self.rule.value(name, x) for x in what]
-        if self.with_root:
-            val = element_maker(self.name or name, self.namespace)(*val)
-        return val
+        return [self.rule.value(name, x) for x in what]
+
+
+class WrappedMany(Many):
+    def value(self, name, what):
+        values = super(WrappedMany, self).value(name, what)
+        return element_maker(self.name or name, self.namespace)(*values)
 
 
 def xmlfied(el_name, namespace='', fields=[], **kw):

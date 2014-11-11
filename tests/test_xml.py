@@ -10,7 +10,7 @@ Created on Oct 22, 2013
 from lxml import etree
 
 
-from allure.rules import Attribute, xmlfied, Element, Nested, Many
+from allure.rules import Attribute, xmlfied, Element, Nested, WrappedMany
 from hamcrest.core.assert_that import assert_that
 from hamcrest.library.text.stringcontainsinorder import string_contains_in_order
 from hamcrest.core.core.allof import all_of
@@ -54,7 +54,7 @@ def test_nested():
 
 
 def test_many_elements():
-    Box = xmlfied('box', foos=Many(Element(name='foo')))
+    Box = xmlfied('box', foos=WrappedMany(Element(name='foo')))
 
     box = Box(foos=['a', 'b', 'c'])
 
@@ -67,7 +67,7 @@ def test_many_elements():
 
 def test_many_nested():
     Item = xmlfied('item', value=Element())
-    Box = xmlfied('box', items=Many(Nested()))
+    Box = xmlfied('box', items=WrappedMany(Nested()))
 
     box = Box(items=[])
     box.items.append(Item('a'))

@@ -28,11 +28,11 @@ class TestCommonImpl:
     def test_empty_initial_environment(self, allure_impl):
         assert allure_impl.environment == {}
 
-    def test_not_write_environment_if_empty(self, reportdir, allure_impl):
+    def test_not_write_environment_file_if_environment_empty(self, reportdir, allure_impl):
         allure_impl.write_environment()
         assert not reportdir.listdir()
 
-    def test_write_environment_if_present(self, reportdir, allure_impl, properties_file_name):
+    def test_write_environment_file_if_environment_present(self, reportdir, allure_impl, properties_file_name):
         allure_impl.environment.update({'foo': 'bar'})
         allure_impl.write_environment()
         assert reportdir.listdir()[0].basename == properties_file_name

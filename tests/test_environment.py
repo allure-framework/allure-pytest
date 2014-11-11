@@ -33,12 +33,17 @@ def test_write_environment_if_not_empty(allure_impl, env_dict, environment_xml):
 def test_add_environment_in_testcase(report_for, result, environment_xml):
     report_for("""
     import pytest
+    import allure
 
-    def test_passed():
-        if not pytest.allure.environment:
-            pytest.allure.add_environment({'foo': 'bar'})
+    def test_1():
+        allure.add_environment({'foo': 'bar'})
         assert %s
-    """ % result)
+
+    def test_2():
+        if not allure.environment:
+            allure.add_environment({'foo': 'bar'})
+        assert %s
+    """ % (result, result))
 
     assert_that(environment_xml().findall('.//parameter')[0], all_of(has_property('name', 'foo'),
                                                                      has_property('key', 'foo'),
