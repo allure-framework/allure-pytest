@@ -201,7 +201,7 @@ class AllureHelper(object):
             with self.step(text):
                 pass
 
-    def add_environment(self, env_dict):
+    def environment(self, **env_dict):
         if self._allurelistener:
             self._allurelistener.impl.environment.update(env_dict)
 

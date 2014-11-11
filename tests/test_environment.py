@@ -36,7 +36,7 @@ def test_add_environment_in_testcase(report_for, result, environment_xml):
     import allure
 
     def test_dummy():
-        allure.add_environment({'foo': 'bar'})
+        allure.environment(foo='bar')
         assert %s
     """ % result)
 

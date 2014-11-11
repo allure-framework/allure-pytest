@@ -8,6 +8,6 @@ Demo for environment
 
 import allure
 
-def test_write_environment():
-    allure.add_environment({'foo': 'bar', 'country': u'Россия'})
+def test_store_environment():
+    allure.environment(foo='bar', country=u'Россия')
     assert True
