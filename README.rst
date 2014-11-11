@@ -194,6 +194,40 @@ To run tests by Feature or Story:
  py.test my_tests/ --allure_features=feature1,feature2
  py.test my_tests/ --allure_features=feature1,feature2 --allure_stories=story1,story2
 
+
+Environment Parameters
+======================
+
+You can provide test environment parameters such as report name, browser or test server address to allure test report.
+
+.. code:: python
+
+ import allure
+ import pytest
+
+
+ def pytest_configure(config):
+     allure.environment(report='Allure report', browser=u'Я.Браузер')
+
+
+ @pytest.fixture(scope="session")
+ def app_host_name():
+     host_name = "my.host.local"
+     allure.environment(hostname=host_name)
+     return host_name
+
+
+ @pytest.mark.parametrize('country', ('USA', 'Germany', u'Россия', u'Япония'))
+ def test_minor(country):
+     allure.environment(country=country)
+     assert country
+
+
+More details about allure environment you can know from documentation_. 
+
+.. _documentation: https://github.com/allure-framework/allure-core/wiki/Environment
+
+
 Development
 ===========
 
