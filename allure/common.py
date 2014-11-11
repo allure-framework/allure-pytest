@@ -182,7 +182,7 @@ class AllureImpl(object):
         with self._reportfile('%s-testsuite.xml' % uuid.uuid4()) as f:
             self._write_xml(f, self.testsuite)
 
-    def write_environment(self):
+    def store_environment(self):
         if not self.environment:
             return
 

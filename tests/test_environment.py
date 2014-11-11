@@ -14,16 +14,16 @@ from hamcrest.core.core.allof import all_of
 
 
 @pytest.mark.parametrize("env_dict", ({'a': 1, 'b': 2}, {'a': 1, 'b':2, 'c': 3}))
-def test_write_environment_with_given_number_of_parameters(allure_impl, env_dict, environment_xml):
+def test_store_environment_with_given_number_of_parameters(allure_impl, env_dict, environment_xml):
     allure_impl.environment.update(env_dict)
-    allure_impl.write_environment()
+    allure_impl.store_environment()
     assert_that(len(environment_xml().findall('.//parameter')), equal_to(len(env_dict)))
 
 
 @pytest.mark.parametrize("env_dict", ({'me': 42}, {'foo': 'bar'}, {'foo': u'бар'}))
-def test_write_environment_if_not_empty(allure_impl, env_dict, environment_xml):
+def test_store_environment_if_not_empty(allure_impl, env_dict, environment_xml):
     allure_impl.environment.update(env_dict)
-    allure_impl.write_environment()
+    allure_impl.store_environment()
     assert_that(environment_xml().findall('.//parameter')[0], all_of(has_property('name', env_dict.keys()[0]),
                                                                      has_property('key', env_dict.keys()[0]),
                                                                      has_property('value', env_dict.values()[0])))
@@ -35,15 +35,10 @@ def test_add_environment_in_testcase(report_for, result, environment_xml):
     import pytest
     import allure
 
-    def test_1():
+    def test_dummy():
         allure.add_environment({'foo': 'bar'})
         assert %s
-
-    def test_2():
-        if not allure.environment:
-            allure.add_environment({'foo': 'bar'})
-        assert %s
-    """ % (result, result))
+    """ % result)
 
     assert_that(environment_xml().findall('.//parameter')[0], all_of(has_property('name', 'foo'),
                                                                      has_property('key', 'foo'),
