@@ -13,7 +13,7 @@ def element_maker(name, namespace):
     return getattr(objectify.ElementMaker(annotate=False, namespace=namespace,), name)
 
 
-class Rule:
+class Rule(object):
     _check = None
 
     def value(self, name, what):
@@ -94,9 +94,13 @@ class Many(Rule):
         self.namespace = namespace
 
     def value(self, name, what):
-        el = element_maker(self.name or name, self.namespace)
+        return [self.rule.value(name, x) for x in what]
 
-        return el(*[self.rule.value(name, x) for x in what])
+
+class WrappedMany(Many):
+    def value(self, name, what):
+        values = super(WrappedMany, self).value(name, what)
+        return element_maker(self.name or name, self.namespace)(*values)
 
 
 def xmlfied(el_name, namespace='', fields=[], **kw):

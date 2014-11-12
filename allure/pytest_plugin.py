@@ -201,6 +201,10 @@ class AllureHelper(object):
             with self.step(text):
                 pass
 
+    def environment(self, **env_dict):
+        if self._allurelistener:
+            self._allurelistener.impl.environment.update(env_dict)
+
     @property
     def attach_type(self):
         return AttachmentType
@@ -314,6 +318,7 @@ class AllureTestListener(object):
         if self.testsuite:
             self.impl.stop_suite()
             self.testsuite = None
+        self.impl.store_environment()
 
 
 CollectFail = namedtuple('CollectFail', 'name status message trace')

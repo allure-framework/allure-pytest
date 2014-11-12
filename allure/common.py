@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 Created on Feb 23, 2014
 
@@ -13,7 +15,7 @@ from lxml import etree
 import py
 
 from allure.constants import AttachmentType, Status
-from allure.structure import Attach, TestStep, TestCase, TestSuite, Failure
+from allure.structure import Attach, TestStep, TestCase, TestSuite, Failure, Environment, EnvParameter
 from allure.utils import now
 
 
@@ -95,6 +97,7 @@ class AllureImpl(object):
         self.stack = []
 
         self.testsuite = None
+        self.environment = {}
 
     def attach(self, title, contents, attach_type):
         """
@@ -177,7 +180,18 @@ class AllureImpl(object):
         self.testsuite.stop = now()
 
         with self._reportfile('%s-testsuite.xml' % uuid.uuid4()) as f:
-            self._write_suite(f, self.testsuite)
+            self._write_xml(f, self.testsuite)
+
+    def store_environment(self):
+        if not self.environment:
+            return
+
+        environment = Environment(id=uuid.uuid4(), name="Allure environment parameters", parameters=[])
+        for key, value in self.environment.iteritems():
+            environment.parameters.append(EnvParameter(name=key, key=key, value=value))
+
+        with self._reportfile('environment.xml') as f:
+            self._write_xml(f, environment)
 
     def _save_attach(self, body, attach_type=AttachmentType.TEXT):
         """
@@ -217,5 +231,5 @@ class AllureImpl(object):
         finally:
             logfile.close()
 
-    def _write_suite(self, logfile, suite):
-        logfile.write(etree.tostring(suite.toxml(), pretty_print=True, xml_declaration=False, encoding=unicode))
+    def _write_xml(self, logfile, xmlfied):
+        logfile.write(etree.tostring(xmlfied.toxml(), pretty_print=True, xml_declaration=False, encoding=unicode))

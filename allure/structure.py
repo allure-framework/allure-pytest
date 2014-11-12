@@ -6,8 +6,8 @@ Created on Oct 23, 2013
 @author: pupssman
 '''
 
-from allure.rules import xmlfied, Attribute, Element, Many, Nested
-from allure.constants import ALLURE_NAMESPACE
+from allure.rules import xmlfied, Attribute, Element, WrappedMany, Nested, Many
+from allure.constants import ALLURE_NAMESPACE, COMMON_NAMESPACE
 
 
 Attach = xmlfied('attachment',
@@ -26,9 +26,9 @@ TestCase = xmlfied('test-case',
                    title=Element().if_(lambda x: x),
                    description=Element().if_(lambda x: x),
                    failure=Nested().if_(lambda x: x),
-                   steps=Many(Nested()),
-                   attachments=Many(Nested()),
-                   labels=Many(Nested()),
+                   steps=WrappedMany(Nested()),
+                   attachments=WrappedMany(Nested()),
+                   labels=WrappedMany(Nested()),
                    status=Attribute(),
                    start=Attribute(),
                    stop=Attribute())
@@ -39,8 +39,8 @@ TestSuite = xmlfied('test-suite',
                     name=Element(),
                     title=Element().if_(lambda x: x),
                     description=Element().if_(lambda x: x),
-                    tests=Many(Nested(), name='test-cases'),
-                    labels=Many(Nested()),
+                    tests=WrappedMany(Nested(), name='test-cases'),
+                    labels=WrappedMany(Nested()),
                     start=Attribute(),
                     stop=Attribute())
 
@@ -48,8 +48,8 @@ TestSuite = xmlfied('test-suite',
 TestStep = xmlfied('step',
                    name=Element(),
                    title=Element().if_(lambda x: x),
-                   attachments=Many(Nested()),
-                   steps=Many(Nested()),
+                   attachments=WrappedMany(Nested()),
+                   steps=WrappedMany(Nested()),
                    start=Attribute(),
                    stop=Attribute(),
                    status=Attribute())
@@ -57,3 +57,16 @@ TestStep = xmlfied('step',
 TestLabel = xmlfied('label',
                     name=Attribute(),
                     value=Attribute())
+
+
+EnvParameter = xmlfied('parameter',
+                       name=Element(),
+                       key=Element(),
+                       value=Element())
+
+
+Environment = xmlfied('environment',
+                      namespace=COMMON_NAMESPACE,
+                      id=Element(),
+                      name=Element(),
+                      parameters=Many(Nested()))

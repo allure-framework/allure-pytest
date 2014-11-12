@@ -1,7 +1,10 @@
 import os
+
 import pytest
 
 from lxml import etree, objectify
+
+from allure.common import AllureImpl
 
 pytest_plugins = ["pytester"]
 
@@ -55,3 +58,18 @@ def report_for(reports_for):
 
         return reports[0]
     return impl
+
+
+@pytest.fixture
+def allure_impl(reportdir):
+    return AllureImpl(str(reportdir))
+
+
+@pytest.fixture(scope="session")
+def properties_file_name():
+    return "environment.xml"
+
+
+@pytest.fixture
+def environment_xml(reportdir, properties_file_name):
+    return lambda: objectify.parse(os.path.join(str(reportdir), properties_file_name)).getroot()
