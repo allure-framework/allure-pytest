@@ -22,7 +22,7 @@ def test_cyrillic_desc(report_for):
     """)
 
     assert_that(report.findall('.//test-case'), contains(
-                                                       has_property('description', u'тест с русскоязычным описанием')))
+        has_property('description', u'тест с русскоязычным описанием')))
 
 
 def test_cyrillic_exc(report_for):
@@ -33,8 +33,8 @@ def test_cyrillic_exc(report_for):
     """)
 
     assert_that(report.findall('.//failure'), contains(
-                                                       all_of(has_property('message', u'Exception: русские буквы'),
-                                                              has_property('stack-trace', u'''def test_foo():
+        all_of(has_property('message', u'Exception: русские буквы'),
+               has_property('stack-trace', u'''def test_foo():
 >       raise Exception(u'русские буквы')
 E       Exception: русские буквы
 

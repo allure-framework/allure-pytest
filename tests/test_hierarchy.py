@@ -19,9 +19,9 @@ def test_two_files(reports_for):
     """)
 
     assert_that([r.findall('.//test-case') for r in reports], contains_inanyorder(
-                                                                                contains(has_property('name', 'test_B')),
-                                                                                contains(has_property('name', 'test_A')),
-                                                                                ))
+        contains(has_property('name', 'test_B')),
+        contains(has_property('name', 'test_A')),
+    ))
 
 
 def test_class(report_for):
@@ -68,6 +68,6 @@ def test_two_suite_params(reports_for):
         pass""")
 
     assert_that(reports, contains_inanyorder(
-                                             has_properties({'{}name': 'test_A', '{}description': 'suite_A'}),
-                                             has_properties({'{}name': 'test_B', '{}description': 'suite_B'}),
-                                             ))
+        has_properties({'{}name': 'test_A', '{}description': 'suite_A'}),
+        has_properties({'{}name': 'test_B', '{}description': 'suite_B'}),
+    ))
