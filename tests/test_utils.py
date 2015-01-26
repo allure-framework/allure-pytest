@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from six import u
 from allure.utils import all_of, unicodify
 from hamcrest import assert_that, only_contains, equal_to
 import pytest
@@ -16,9 +15,10 @@ def test_all_of_ignore_name():
 
 
 @pytest.mark.parametrize('arg,result', [
-    (u('привет'), u('привет')),
-    (u('привет').encode('utf-8'), u('привет')),
-    (123, u('123')),
+    (u'привет', u'привет'),
+    (u'привет'.encode('utf-8'), u'привет'),
+    (123, u'123'),
+    (Exception(u'привет'), u'привет'),
 ])
 def test_unicodify(arg, result):
     assert_that(unicodify(arg), equal_to(result))
