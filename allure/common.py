@@ -5,6 +5,7 @@ Created on Feb 23, 2014
 
 @author: pupssman
 """
+from six import text_type, iteritems
 from contextlib import contextmanager
 from functools import wraps
 import os
@@ -20,6 +21,7 @@ from allure.utils import now
 
 
 class StepContext:
+
     def __init__(self, allure, title):
         self.allure = allure
         self.title = title
@@ -53,6 +55,7 @@ class StepContext:
 
 
 class AllureImpl(object):
+
     """
     Allure test-flow implementation that handles test data creation.
     Devised to be used as base layer for allure adaptation to arbitrary test frameworks.
@@ -187,7 +190,7 @@ class AllureImpl(object):
             return
 
         environment = Environment(id=uuid.uuid4(), name="Allure environment parameters", parameters=[])
-        for key, value in self.environment.iteritems():
+        for key, value in iteritems(self.environment):
             environment.parameters.append(EnvParameter(name=key, key=key, value=value))
 
         with self._reportfile('environment.xml') as f:
@@ -200,7 +203,7 @@ class AllureImpl(object):
         :arg body: str or unicode with contents. str is written as-is in byte stream, unicode is written as utf-8 (what do you expect else?)
         """
         with self._attachfile("%s-attachment.%s" % (uuid.uuid4(), attach_type.extension)) as f:
-            if isinstance(body, unicode):
+            if isinstance(body, text_type):
                 f.write(body.encode('utf-8'))
             else:
                 f.write(body)
@@ -232,4 +235,4 @@ class AllureImpl(object):
             logfile.close()
 
     def _write_xml(self, logfile, xmlfied):
-        logfile.write(etree.tostring(xmlfied.toxml(), pretty_print=True, xml_declaration=False, encoding=unicode))
+        logfile.write(etree.tostring(xmlfied.toxml(), pretty_print=True, xml_declaration=False, encoding=text_type))

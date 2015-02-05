@@ -1,8 +1,10 @@
 language: python
 python:
-- '2.7'
+  - '2.7'
+  - '3.3'
+  - '3.4'
 env:
-  - TOX_ENV=py27
+  - TOX_ENV=py
   - TOX_ENV=static_check
 install: pip install tox
 script: tox -e $TOX_ENV

@@ -5,6 +5,7 @@ Created on Nov 3, 2013
 
 @author: pupssman
 """
+from __future__ import absolute_import
 
 import time
 
@@ -12,7 +13,7 @@ from hamcrest import assert_that, has_property, has_entry, has_properties, conta
 from hamcrest.library.number.ordering_comparison import greater_than_or_equal_to, \
     less_than_or_equal_to
 from hamcrest.core.core.allof import all_of
-from matchers import has_float
+from .matchers import has_float
 from allure.constants import Status
 import pytest
 
@@ -21,9 +22,9 @@ def step_with(name, start, stop, status):
     return has_properties(name=name,
                           title=name,
                           attrib=all_of(
-                                        has_entry('start', has_float(greater_than_or_equal_to(start))),
-                                        has_entry('stop', has_float(less_than_or_equal_to(stop))),
-                                        has_entry('status', status)))
+                              has_entry('start', has_float(greater_than_or_equal_to(start))),
+                              has_entry('stop', has_float(less_than_or_equal_to(stop))),
+                              has_entry('status', status)))
 
 
 @pytest.fixture()
@@ -39,8 +40,8 @@ def timed_report_for(report_for):
 
 
 @pytest.mark.parametrize('status,expr', [(Status.PASSED, 'assert True'),
-                                           (Status.FAILED, 'assert False'),
-                                           (Status.SKIPPED, 'pytest.skip("foo")')])
+                                         (Status.FAILED, 'assert False'),
+                                         (Status.SKIPPED, 'pytest.skip("foo")')])
 def test_one_step(timed_report_for, status, expr):
     report, start, stop = timed_report_for("""
     import pytest
@@ -81,7 +82,7 @@ def test_two_steps(timed_report_for):
     """)
 
     assert_that(report.findall('.//test-case/steps/step'), contains(step_with('step_1', start, stop, Status.PASSED),
-                                                          step_with('step_2', start, stop, Status.FAILED)))
+                                                                    step_with('step_2', start, stop, Status.FAILED)))
 
 
 def test_fixture_step(timed_report_for):
@@ -102,6 +103,7 @@ def test_fixture_step(timed_report_for):
 
 def test_other_module_fixture_step(testdir, timed_report_for):
     fixture_def_body = """
+from __future__ import print_function
 import pytest
 import allure
 
@@ -119,7 +121,7 @@ class allure_test_fixture_impl():
 
     @allure.step('allure_test_fixture_step')
     def test(self):
-        print "Hello"
+        print("Hello")
 
 """
     testdir.makepyfile(util_fixture=fixture_def_body)

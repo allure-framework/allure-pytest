@@ -87,10 +87,12 @@ def pytest_runtest_setup(item):
 
 
 class LazyInitStepContext(StepContext):
+
     """
     This is a step context used for decorated steps.
     It provides a possibility to create step decorators, being initiated before pytest_configure, when no AllureListener initiated yet.
     """
+
     def __init__(self, allure_helper, title):
         self.allure_helper = allure_helper
         self.title = title
@@ -102,9 +104,11 @@ class LazyInitStepContext(StepContext):
 
 
 class AllureHelper(object):
+
     """
     This object holds various utility methods used from ``pytest.allure`` namespace, like ``pytest.allure.attach``
     """
+
     def __init__(self):
         self._allurelistener = None  # FIXME: this gets injected elsewhere, like in the pytest_configure
 
@@ -122,9 +126,7 @@ class AllureHelper(object):
         """
         A decorator factory that returns ``pytest.mark`` for a given label.
         """
-
-        allure_label = getattr(pytest.mark, '%s.%s' %
-                               (Label.DEFAULT, name.encode('utf-8', 'ignore')))
+        allure_label = getattr(pytest.mark, '%s.%s' % (Label.DEFAULT, name))
         return allure_label(*value)
 
     def severity(self, severity):
@@ -235,9 +237,11 @@ def pytest_namespace():
 
 
 class AllureTestListener(object):
+
     """
     Listens to pytest hooks to generate reports for common tests.
     """
+
     def __init__(self, logdir, config):
         self.impl = AllureImpl(logdir)
         self.config = config
@@ -301,7 +305,7 @@ class AllureTestListener(object):
             else:
                 self._stop_case(report, status=Status.FAILED)
         elif report.skipped:
-                self._stop_case(report, status=Status.SKIPPED)
+            self._stop_case(report, status=Status.SKIPPED)
 
     def pytest_runtest_makereport(self, item, call, __multicall__):  # @UnusedVariable
         """
@@ -325,10 +329,12 @@ CollectFail = namedtuple('CollectFail', 'name status message trace')
 
 
 class AllureCollectionListener(object):
+
     """
     Listens to pytest collection-related hooks
     to generate reports for modules that failed to collect.
     """
+
     def __init__(self, logdir):
         self.impl = AllureImpl(logdir)
         self.fails = []

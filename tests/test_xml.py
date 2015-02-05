@@ -16,12 +16,15 @@ from hamcrest.library.text.stringcontainsinorder import string_contains_in_order
 from hamcrest.core.core.allof import all_of
 
 
+def get_xml_string(doc):
+    return etree.tostring(doc).decode('utf-8')
+
+
 def test_element():
     ElementTest = xmlfied('element_test', ab=Element())
 
     a = ElementTest(ab='foo')
-
-    assert_that(etree.tostring(a.toxml()), string_contains_in_order('<element_test>',
+    assert_that(get_xml_string(a.toxml()), string_contains_in_order('<element_test>',
                                                                     '<ab>foo</ab>',
                                                                     '</element_test>'))
 
@@ -31,7 +34,7 @@ def test_attribute():
 
     a = AttrTest(foo='bar')
 
-    assert_that(etree.tostring(a.toxml()), string_contains_in_order('<attr_test', 'foo=', '"bar"', ">"))
+    assert_that(get_xml_string(a.toxml()), string_contains_in_order('<attr_test', 'foo=', '"bar"', ">"))
 
 
 def test_nested():
@@ -41,7 +44,7 @@ def test_nested():
     d = Down(bar='123', baz='456')
     t = Top(foo=d)
 
-    assert_that(etree.tostring(t.toxml()), string_contains_in_order(
+    assert_that(get_xml_string(t.toxml()), string_contains_in_order(
         '<top>',
         '<down',
         'baz=', '"456"',
@@ -58,7 +61,7 @@ def test_many_elements():
 
     box = Box(foos=['a', 'b', 'c'])
 
-    assert_that(etree.tostring(box.toxml()), all_of(
+    assert_that(get_xml_string(box.toxml()), all_of(
         string_contains_in_order('<box>', '<foos>', '<foo>', 'a', '</foo>', '</foos>', '</box>'),
         string_contains_in_order('<box>', '<foos>', '<foo>', 'b', '</foo>', '</foos>', '</box>'),
         string_contains_in_order('<box>', '<foos>', '<foo>', 'c', '</foo>', '</foos>', '</box>')
@@ -74,7 +77,7 @@ def test_many_nested():
     box.items.append(Item('a'))
     box.items.append(Item('a'))
 
-    assert_that(etree.tostring(box.toxml()), all_of(
+    assert_that(get_xml_string(box.toxml()), all_of(
         string_contains_in_order('<box>',
                                  '<items>',
                                  '<item>', 'a', '</item>',
@@ -94,7 +97,7 @@ def test_elements_order():
 
     foo = Foo(bar=3, baz=4, gaz=5, daz=6)
 
-    assert_that(etree.tostring(foo.toxml()), string_contains_in_order(
+    assert_that(get_xml_string(foo.toxml()), string_contains_in_order(
         '<bar>', '3', '</bar>',
         '<baz>', '4', '</baz>',
         '<gaz>', '5', '</gaz>',
@@ -105,20 +108,20 @@ def test_elements_order():
 def test_optional():
     foo = xmlfied('foo', bar=Element().if_(lambda x: '123' not in x))
 
-    assert_that(etree.tostring(foo(bar=' 123 ').toxml()), string_contains_in_order('<foo/>'))
-    assert_that(etree.tostring(foo(bar=' 12 3').toxml()), string_contains_in_order('<foo>', '<bar>'))
+    assert_that(get_xml_string(foo(bar=' 123 ').toxml()), string_contains_in_order('<foo/>'))
+    assert_that(get_xml_string(foo(bar=' 12 3').toxml()), string_contains_in_order('<foo>', '<bar>'))
 
 
 def test_element_name():
     foo = xmlfied('foo', bar=Element(name='foo-bar'))
 
-    assert_that(etree.tostring(foo(bar='123').toxml()), string_contains_in_order('<foo>', '<foo-bar>', '123', '</foo-bar>', '</foo>'))
+    assert_that(get_xml_string(foo(bar='123').toxml()), string_contains_in_order('<foo>', '<foo-bar>', '123', '</foo-bar>', '</foo>'))
 
 
 def test_bad_symbols_replacement():
     foo = xmlfied('foo', bar=Element(name='bar'))
 
-    assert_that(etree.tostring(foo(bar=u'abОЛОЛОcd'.encode('cp1251')).toxml()), string_contains_in_order('<bar>', 'ab', '&#65533;' * 4, 'cd', '</bar>'))
+    assert_that(get_xml_string(foo(bar=u'abОЛОЛОcd'.encode('cp1251')).toxml()), string_contains_in_order('<bar>', 'ab', '&#65533;' * 4, 'cd', '</bar>'))
 
 
 def test_illegal_xml_symbols():

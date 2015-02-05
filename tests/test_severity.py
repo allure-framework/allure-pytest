@@ -5,18 +5,18 @@ Created on Nov 8, 2013
 
 @author: pupssman
 """
-
+from __future__ import absolute_import
 from hamcrest import assert_that, contains, all_of, has_entry, has_property, has_properties, contains_inanyorder, has_item, equal_to
 from allure.constants import Severity, Status
 from allure import utils
-from matchers import has_label
+from .matchers import has_label
 import pytest
 
 
 def severity_element(value):
     return has_properties(attrib=all_of(
-                            has_entry('name', 'severity'),
-                            has_entry('value', value)))
+        has_entry('name', 'severity'),
+        has_entry('value', value)))
 
 
 def has_test_with_severity(test_name, severity_level):
@@ -24,9 +24,9 @@ def has_test_with_severity(test_name, severity_level):
 
 
 @pytest.mark.parametrize('mark_way', [
-                                      '@pytest.allure.%s',
-                                      '@pytest.allure.severity(pytest.allure.severity_level.%s)'
-                                      ], ids=['Short', 'Full'])
+    '@pytest.allure.%s',
+    '@pytest.allure.severity(pytest.allure.severity_level.%s)'
+], ids=['Short', 'Full'])
 @pytest.mark.parametrize('name,value', utils.all_of(Severity))
 def test_method_severity(report_for, name, value, mark_way):
     report = report_for("""
@@ -110,7 +110,7 @@ def test_module_severity(report_for):
                                        [Severity.CRITICAL, Severity.MINOR, Severity.NORMAL],
                                        [Severity.TRIVIAL],
                                        [Severity.BLOCKER],
-                                       ])
+])
 def test_run_only(report_for, severities):
     """
     Checks that running for given severities runs only selected tests
