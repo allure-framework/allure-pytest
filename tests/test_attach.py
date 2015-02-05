@@ -30,7 +30,7 @@ def test_smoke(report_for, package):
 @pytest.mark.parametrize('a_type', map(lambda x: x[0], all_of(AttachmentType)))
 def test_attach_types(report_for, a_type):
     report = report_for("""
-    from pytest import allure as A
+    import allure as A
 
     def test_x():
         A.attach('Foo', 'Bar', A.attach_type.%s)
@@ -40,6 +40,7 @@ def test_attach_types(report_for, a_type):
 
 
 class TestContents:
+
     @pytest.fixture
     def attach_contents(self, report_for, reportdir):
         """
@@ -55,11 +56,11 @@ class TestContents:
 
             filename = report.find('.//attachment').get('source')
 
-            return reportdir.join(filename).read()
+            return reportdir.join(filename).read('rb')
         return impl
 
     def test_ascii(self, attach_contents):
-        assert_that(attach_contents('foo\nbar\tbaz'), is_('foo\nbar\tbaz'))
+        assert_that(attach_contents('foo\nbar\tbaz'), is_(b'foo\nbar\tbaz'))
 
     def test_unicode(self, attach_contents):
         assert_that(attach_contents(u'ололо пыщьпыщь').decode('utf-8'), is_(u'ололо пыщьпыщь'))

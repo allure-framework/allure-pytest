@@ -17,8 +17,7 @@ class HasFloat(BaseMatcher):
         return self.str_matcher.matches(float(item))
 
     def describe_to(self, description):
-        description.append_text('an object with float ')          \
-                    .append_description_of(self.str_matcher)
+        description.append_text('an object with float ').append_description_of(self.str_matcher)
 
 
 def has_float(match):

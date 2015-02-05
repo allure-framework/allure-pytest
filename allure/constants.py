@@ -8,7 +8,7 @@ Created on Oct 15, 2013
 from enum import Enum
 
 
-class Status:
+class Status(object):
     FAILED = 'failed'
     BROKEN = 'broken'
     PASSED = 'passed'
@@ -16,7 +16,7 @@ class Status:
     PENDING = 'pending'
 
 
-class Label:
+class Label(object):
     DEFAULT = 'allure_label'
     FEATURE = 'feature'
     STORY = 'story'
@@ -24,7 +24,7 @@ class Label:
     ISSUE = 'issue'
 
 
-class Severity:
+class Severity(object):
     BLOCKER = 'blocker'
     CRITICAL = 'critical'
     NORMAL = 'normal'
@@ -33,6 +33,7 @@ class Severity:
 
 
 class AttachmentType(Enum):
+
     def __init__(self, mime_type, extension):
         self.mime_type = mime_type
         self.extension = extension

@@ -6,11 +6,15 @@ Created on Nov 8, 2013
 @author: pupssman
 """
 
+from __future__ import absolute_import
+
+import pytest
+
 from hamcrest import assert_that, contains, all_of, has_entry, has_property, has_properties
+
 from allure.constants import Severity, Status
 from allure import utils
-from matchers import has_label
-import pytest
+from .matchers import has_label
 
 
 def severity_element(value):

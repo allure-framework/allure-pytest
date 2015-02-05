@@ -5,6 +5,7 @@ Created on Nov 3, 2013
 
 @author: pupssman
 """
+from __future__ import absolute_import
 
 import time
 
@@ -12,7 +13,7 @@ from hamcrest import assert_that, has_property, has_entry, has_properties, conta
 from hamcrest.library.number.ordering_comparison import greater_than_or_equal_to, \
     less_than_or_equal_to
 from hamcrest.core.core.allof import all_of
-from matchers import has_float
+from .matchers import has_float
 from allure.constants import Status
 import pytest
 
@@ -102,6 +103,7 @@ def test_fixture_step(timed_report_for):
 
 def test_other_module_fixture_step(testdir, timed_report_for):
     fixture_def_body = """
+from __future__ import print_function
 import pytest
 import allure
 
@@ -119,7 +121,7 @@ class allure_test_fixture_impl():
 
     @allure.step('allure_test_fixture_step')
     def test(self):
-        print "Hello"
+        print("Hello")
 
 """
     testdir.makepyfile(util_fixture=fixture_def_body)
