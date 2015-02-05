@@ -20,8 +20,7 @@ import pytest
 def step_with(name, start, stop, status):
     return has_properties(name=name,
                           title=name,
-                          attrib=all_of(
-                                        has_entry('start', has_float(greater_than_or_equal_to(start))),
+                          attrib=all_of(has_entry('start', has_float(greater_than_or_equal_to(start))),
                                         has_entry('stop', has_float(less_than_or_equal_to(stop))),
                                         has_entry('status', status)))
 
@@ -39,8 +38,9 @@ def timed_report_for(report_for):
 
 
 @pytest.mark.parametrize('status,expr', [(Status.PASSED, 'assert True'),
-                                           (Status.FAILED, 'assert False'),
-                                           (Status.SKIPPED, 'pytest.skip("foo")')])
+                                         (Status.FAILED, 'assert False'),
+                                         (Status.CANCELED, 'pytest.skip("foo")'),
+                                         (Status.PENDING, 'pytest.xfail("foo")'), ])
 def test_one_step(timed_report_for, status, expr):
     report, start, stop = timed_report_for("""
     import pytest
@@ -81,7 +81,7 @@ def test_two_steps(timed_report_for):
     """)
 
     assert_that(report.findall('.//test-case/steps/step'), contains(step_with('step_1', start, stop, Status.PASSED),
-                                                          step_with('step_2', start, stop, Status.FAILED)))
+                                                                    step_with('step_2', start, stop, Status.FAILED)))
 
 
 def test_fixture_step(timed_report_for):

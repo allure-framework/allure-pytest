@@ -12,7 +12,6 @@ class Status:
     FAILED = 'failed'
     BROKEN = 'broken'
     PASSED = 'passed'
-    SKIPPED = 'canceled'
     CANCELED = 'canceled'
     PENDING = 'pending'
 
@@ -50,3 +49,4 @@ class AttachmentType(Enum):
 ALLURE_NAMESPACE = "urn:model.allure.qatools.yandex.ru"
 COMMON_NAMESPACE = "urn:model.commons.qatools.yandex.ru"
 FAILED_STATUSES = [Status.FAILED, Status.BROKEN]
+SKIPPED_STATUSES = [Status.CANCELED, Status.PENDING]

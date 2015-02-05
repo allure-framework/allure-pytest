@@ -7,7 +7,7 @@ import pytest
 from allure.common import AllureImpl, StepContext
 from allure.utils import LabelsList
 from allure.constants import Status, AttachmentType, Severity, \
-    FAILED_STATUSES, Label
+    FAILED_STATUSES, Label, SKIPPED_STATUSES
 from allure.utils import parent_module, parent_down_from_module, labels_of, \
     all_of, get_exception_message
 from allure.structure import TestLabel
@@ -259,7 +259,7 @@ class AllureTestListener(object):
             self.impl.stop_case(status,
                                 message=get_exception_message(report),
                                 trace=report.longrepr or report.wasxfail)
-        elif status == Status.SKIPPED:
+        elif status in SKIPPED_STATUSES:
             skip_message = type(report.longrepr) == tuple and \
                 report.longrepr[2] or report.wasxfail
             trim_msg_len = 89
@@ -301,7 +301,10 @@ class AllureTestListener(object):
             else:
                 self._stop_case(report, status=Status.FAILED)
         elif report.skipped:
-                self._stop_case(report, status=Status.SKIPPED)
+            if hasattr(report, 'wasxfail'):
+                self._stop_case(report, status=Status.PENDING)
+            else:
+                self._stop_case(report, status=Status.CANCELED)
 
     def pytest_runtest_makereport(self, item, call, __multicall__):  # @UnusedVariable
         """
@@ -338,7 +341,7 @@ class AllureCollectionListener(object):
             if report.failed:
                 status = Status.BROKEN
             else:
-                status = Status.SKIPPED
+                status = Status.CANCELED
 
             self.fails.append(CollectFail(name=mangle_testnames(report.nodeid.split("::"))[-1],
                                           status=status,

@@ -6,18 +6,20 @@ Created on Oct 18, 2013
 @author: pupssman
 """
 
-from hamcrest import has_property, assert_that, has_properties, has_string
+from hamcrest import has_property, assert_that, has_properties, has_string, has_entry, all_of
 from hamcrest.library.text.stringcontainsinorder import string_contains_in_order
 
+from allure.constants import Status
 
-def has_error(message='', trace=''):
+
+def has_error(message='', trace='', status=Status.FAILED):
     return has_property('{}test-cases',
                         has_property('test-case',
-                                     has_property('failure',
-                                                  has_properties({
-                                                      'message': message,
-                                                      'stack-trace': has_string(trace)
-                                                  }))))
+                                     all_of(has_property('attrib', has_entry('status', status)),
+                                            has_property('failure',
+                                                         has_properties({'message': message,
+                                                                         'stack-trace': has_string(trace)
+                                                                         })))))
 
 
 def test_smoke(report_for):
@@ -45,6 +47,7 @@ def test_setup_error(report_for):
     """)
 
     assert_that(report, has_error(message='RuntimeError: ololo',
+                                  status=Status.BROKEN,
                                   trace=string_contains_in_order('FOO',
                                                                  'raise',
                                                                  'RuntimeError("ololo")',
@@ -58,6 +61,7 @@ def test_missing_fixture(report_for):
     """)
 
     assert_that(report, has_error(message=string_contains_in_order('FixtureLookupError'),
+                                  status=Status.BROKEN,
                                   trace=string_contains_in_order("fixture 'FOO' not found",
                                                                  'available fixtures',)))
 
@@ -69,6 +73,7 @@ def test_collect_error(report_for):
     """)
 
     assert_that(report, has_error(message='failed',
+                                  status=Status.BROKEN,
                                   trace=string_contains_in_order('import',
                                                                  'SyntaxError')))
 
@@ -96,6 +101,7 @@ def test_xfail(report_for):
     """)
 
     assert_that(report, has_error(message='ololo',
+                                  status=Status.PENDING,
                                   trace=''))
 
 
@@ -108,6 +114,7 @@ def test_skip(report_for):
     """)
 
     assert_that(report, has_error(message='Skipped: ololo',
+                                  status=Status.CANCELED,
                                   trace=''))
 
 
@@ -120,4 +127,5 @@ def test_skip_long(report_for):
     """)
 
     assert_that(report, has_error(message='Skipped: ' + 'ololo' * 16 + '...',
+                                  status=Status.CANCELED,
                                   trace='Skipped: ' + 'ololo' * 16 + '!'))
