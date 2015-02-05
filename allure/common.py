@@ -12,6 +12,8 @@ import os
 import uuid
 
 from _pytest.runner import Skipped
+from _pytest.skipping import XFailed
+
 from lxml import etree
 import py
 
@@ -35,7 +37,9 @@ class StepContext:
         if self.allure:
             if exc_type is not None:
                 if exc_type == Skipped:
-                    self.step.status = Status.SKIPPED
+                    self.step.status = Status.CANCELED
+                elif exc_type == XFailed:
+                    self.step.status = Status.PENDING
                 else:
                     self.step.status = Status.FAILED
             else:

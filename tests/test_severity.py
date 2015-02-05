@@ -5,28 +5,30 @@ Created on Nov 8, 2013
 
 @author: pupssman
 """
+
 from __future__ import absolute_import
-from hamcrest import assert_that, contains, all_of, has_entry, has_property, has_properties, contains_inanyorder, has_item, equal_to
+
+import pytest
+
+from hamcrest import assert_that, contains, all_of, has_entry, has_property, has_properties
+
 from allure.constants import Severity, Status
 from allure import utils
 from .matchers import has_label
-import pytest
 
 
 def severity_element(value):
-    return has_properties(attrib=all_of(
-        has_entry('name', 'severity'),
-        has_entry('value', value)))
+    return has_properties(attrib=all_of(has_entry('name', 'severity'),
+                                        has_entry('value', value)))
 
 
 def has_test_with_severity(test_name, severity_level):
     return has_label(test_name, label_value=severity_level, label_name='severity')
 
 
-@pytest.mark.parametrize('mark_way', [
-    '@pytest.allure.%s',
-    '@pytest.allure.severity(pytest.allure.severity_level.%s)'
-], ids=['Short', 'Full'])
+@pytest.mark.parametrize('mark_way', ['@pytest.allure.%s',
+                                      '@pytest.allure.severity(pytest.allure.severity_level.%s)'
+                                      ], ids=['Short', 'Full'])
 @pytest.mark.parametrize('name,value', utils.all_of(Severity))
 def test_method_severity(report_for, name, value, mark_way):
     report = report_for("""
@@ -104,13 +106,12 @@ def test_module_severity(report_for):
     ))
 
 
-@pytest.mark.parametrize('severities', [
-                                       [Severity.CRITICAL],
-                                       [Severity.CRITICAL, Severity.MINOR],
-                                       [Severity.CRITICAL, Severity.MINOR, Severity.NORMAL],
-                                       [Severity.TRIVIAL],
-                                       [Severity.BLOCKER],
-])
+@pytest.mark.parametrize('severities', [[Severity.CRITICAL],
+                                        [Severity.CRITICAL, Severity.MINOR],
+                                        [Severity.CRITICAL, Severity.MINOR, Severity.NORMAL],
+                                        [Severity.TRIVIAL],
+                                        [Severity.BLOCKER],
+                                        ])
 def test_run_only(report_for, severities):
     """
     Checks that running for given severities runs only selected tests
@@ -130,7 +131,7 @@ def test_run_only(report_for, severities):
         pass
     """, extra_run_args=['--allure_severities', ','.join(severities)])
 
-    a_status, b_status, c_status = [Status.PASSED if s in severities else Status.SKIPPED for s in [Severity.CRITICAL, Severity.MINOR, '']]
+    a_status, b_status, c_status = [Status.PASSED if s in severities else Status.CANCELED for s in [Severity.CRITICAL, Severity.MINOR, '']]
 
     assert_that(report.xpath(".//test-case"), contains(
         all_of(has_property('name', 'test_a'), has_property('attrib', has_entry('status', a_status))),
