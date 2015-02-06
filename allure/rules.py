@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
-
 __author__ = 'pupssman'
-
-from six import u, unichr, text_type, binary_type
 
 import re
 import sys
 
+from six import u, unichr
 from lxml import objectify
 from namedlist import namedlist
+
+from allure.utils import unicodify
 
 
 def element_maker(name, namespace):
@@ -68,22 +68,13 @@ class Element(Rule):
         self.namespace = namespace
 
     def value(self, name, what):
-        if not isinstance(what, (text_type, binary_type)):
-            return self.value(name, str(what))
-
-        if not isinstance(what, text_type):
-            try:
-                what = text_type(what, 'utf-8')
-            except UnicodeDecodeError:
-                what = text_type(what, 'utf-8', errors='replace')
-
-        return element_maker(self.name or name, self.namespace)(legalize_xml(what))
+        return element_maker(self.name or name, self.namespace)(legalize_xml(unicodify(what)))
 
 
 class Attribute(Rule):
 
     def value(self, name, what):
-        return str(what)
+        return legalize_xml(unicodify(what))
 
 
 class Nested(Rule):
