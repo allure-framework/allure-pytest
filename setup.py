@@ -3,7 +3,7 @@ from setuptools import setup
 
 
 PACKAGE = "pytest-allure-adaptor"
-VERSION = "1.5.3"
+VERSION = "1.5.4"
 
 
 def read(fname):
@@ -25,7 +25,7 @@ def main():
             "lxml>=3.2.0",
             "pytest>=2.4.1",
             "namedlist",
-            "six",
+            "six>=1.9.0",
             "enum34"]
     )
 
