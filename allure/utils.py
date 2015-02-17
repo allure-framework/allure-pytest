@@ -8,17 +8,17 @@ Created on Oct 22, 2013
 @author: pupssman
 '''
 
-from six import text_type, binary_type, python_2_unicode_compatible, u
-from six.moves import filter
 import time
 import hashlib
 import inspect
+
+from six import text_type, binary_type, python_2_unicode_compatible, u
+from six.moves import filter
 from traceback import format_exception_only
 
 from _pytest.python import Module
 
 from allure.constants import Label
-from allure.structure import TestLabel
 
 
 def parents_of(item):
@@ -66,6 +66,9 @@ def labels_of(item):
     """
     Returns list of TestLabel elements.
     """
+
+    # FIXME: utils should not depend on structure, actually
+    from allure.structure import TestLabel
 
     def get_marker_that_starts_with(item, name):
         """ get a list of marker object from item node that starts with given

@@ -10,6 +10,7 @@ Created on Oct 19, 2013
 from hamcrest import has_property, assert_that, contains
 from hamcrest.core.core.allof import all_of
 from allure.utils import present_exception, unicodify
+from .matchers import has_label
 
 
 def test_cyrillic_desc(report_for):
@@ -51,3 +52,19 @@ def test_complex_exc_xmld_ok():
 
 def test_syntax_error_presentation():
     assert 'SyntaxError' in present_exception(SyntaxError(u'Помогите'.encode('cp1251')))
+
+
+def test_unicode_labels(report_for):
+    report = report_for(u"""
+    # -*- coding: utf-8 -*-
+    import allure
+
+    @allure.feature(u'русские буквы')
+    @allure.story(u'еще русские буквы')
+    def test_a():
+        pass
+    """)
+
+    assert_that(report, all_of(
+        has_label('test_a', 'feature', u'русские буквы'),
+        has_label('test_a', 'story', u'еще русские буквы')))
