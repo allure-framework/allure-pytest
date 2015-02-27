@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
-__author__ = 'pupssman'
+"""
+Simple object-to-XML binding mechanism.
+
+@author: pupssman
+"""
 
 import re
 import sys
@@ -108,7 +112,11 @@ def xmlfied(el_name, namespace='', fields=[], **kw):
 
         def toxml(self):
             el = element_maker(el_name, namespace)
-            entries = lambda clazz: [(name, rule.value(name, getattr(self, name))) for (name, rule) in items if isinstance(rule, clazz) and rule.check(getattr(self, name))]
+
+            def entries(clazz):
+                return [(name, rule.value(name, getattr(self, name)))
+                        for (name, rule) in items
+                        if isinstance(rule, clazz) and rule.check(getattr(self, name))]
 
             elements = entries(Element)
             attributes = entries(Attribute)
