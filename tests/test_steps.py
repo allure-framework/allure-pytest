@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 """
 Tests for steps with allure-adaptor
 
@@ -240,17 +242,26 @@ def test_step_fixture_method(timed_report_for):
     assert_that(report.findall('.//test-case/steps/step'), contains(step_with('fixture_step_bar', start, stop, Status.PASSED)))
 
 
-def test_step_decorator_formatting(timed_report_for):
-    report, start, stop = timed_report_for("""
+@pytest.mark.parametrize('step_name,value,expected_name',
+                         [('"X:{0}"', '"abc"', 'X:abc'),
+                          ('u"{0}"', u'u"тест"', u'тест'),
+                          ('"{foo}:{bar}"', 'foo=123, bar="x"', '123:x'),
+                          ('"{0!r}"', '"abc"', "'abc'"),
+                          ('"{0[a]}"', '{"a": "b"}', "b"),
+                          ('"{0}-{1}"', '123, 456', "123-456"),
+                          ])
+def test_step_decorator_formatting(timed_report_for, step_name, value, expected_name):
+    report, start, stop = timed_report_for(u"""
+    # encoding: utf-8
     import pytest
     import allure
 
-    @allure.step("Step with foo=<{0}>")
-    def foo(bar):
-        return bar
+    @allure.step(%s)
+    def foo(*a, **kw):
+        return True
 
     def test_ololo_pewpew():
-        assert foo(123)
-    """)
+        assert foo(%s)
+    """ % (step_name, value))
 
-    assert_that(report.findall('.//test-case/steps/step'), contains(step_with("Step with foo=<123>", start, stop, Status.PASSED)))
+    assert_that(report.findall('.//test-case/steps/step'), contains(step_with(expected_name, start, stop, Status.PASSED)))
