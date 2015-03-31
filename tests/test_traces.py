@@ -87,7 +87,7 @@ def test_xpass(report_for):
         assert True
     """)
 
-    assert_that(report, has_error(message='xpassed',
+    assert_that(report, has_error(message='passed',
                                   trace='ololo'))
 
 

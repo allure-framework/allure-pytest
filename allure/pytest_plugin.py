@@ -281,7 +281,8 @@ class AllureTestListener(object):
     def pytest_runtest_protocol(self, __multicall__, item, nextitem):
         if not self.testsuite:
             module = parent_module(item)
-            self.impl.start_suite(name='.'.join(mangle_testnames(module.nodeid.split("::"))),
+
+            self.impl.start_suite(name=module.module.__name__,
                                   description=module.module.__doc__ or None)
             self.testsuite = 'Yes'
 
@@ -364,6 +365,6 @@ class AllureCollectionListener(object):
                                   title='Collection phase',
                                   description='This is the tests collection phase. Failures are modules that failed to collect.')
             for fail in self.fails:
-                self.impl.start_case(name=fail.name)
+                self.impl.start_case(name=fail.name.split(".")[-1])
                 self.impl.stop_case(status=fail.status, message=fail.message, trace=fail.trace)
             self.impl.stop_suite()

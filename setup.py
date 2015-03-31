@@ -23,7 +23,7 @@ def main():
         entry_points={'pytest11': ['allure_adaptor = allure.pytest_plugin']},
         install_requires=[
             "lxml>=3.2.0",
-            "pytest>=2.4.1",
+            "pytest>=2.7.0",
             "namedlist",
             "six>=1.9.0",
             "enum34"]
