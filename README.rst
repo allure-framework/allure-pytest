@@ -96,6 +96,23 @@ Steps can also be used without pytest. In that case instead of ``pytest.allure.s
      # do stuff
 
 
+``allure.step`` decorator supports step name formatting with function parameters:
+
+.. code:: python
+
+ import allure
+
+ @allure.step('some operation for bar={0}')
+ def do_operation(bar):
+     # do stuff
+     
+ def test_foo():
+     assert do_operation('abcdef')
+
+The step in the latter case will have name ``some operation for bar=abcdef``. 
+Formatting is done via python's built-in ``string.format`` and supports it's options. 
+Arguments are passed to ``format`` method in the same way they are passed to the decorated function.
+
 Steps support is limited when used with fixtures.
 
 
