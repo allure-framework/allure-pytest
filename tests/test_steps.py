@@ -238,3 +238,19 @@ def test_step_fixture_method(timed_report_for):
     """)
 
     assert_that(report.findall('.//test-case/steps/step'), contains(step_with('fixture_step_bar', start, stop, Status.PASSED)))
+
+
+def test_step_decorator_formatting(timed_report_for):
+    report, start, stop = timed_report_for("""
+    import pytest
+    import allure
+
+    @allure.step("Step with foo=<{0}>")
+    def foo(bar):
+        return bar
+
+    def test_ololo_pewpew():
+        assert foo(123)
+    """)
+
+    assert_that(report.findall('.//test-case/steps/step'), contains(step_with("Step with foo=<123>", start, stop, Status.PASSED)))

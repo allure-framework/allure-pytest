@@ -53,7 +53,7 @@ class StepContext:
         """
         @wraps(func)
         def impl(*a, **kw):
-            with self:
+            with StepContext(self.allure, self.title.format(*a, **kw)):
                 return func(*a, **kw)
         return impl
 
