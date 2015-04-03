@@ -135,7 +135,8 @@ def get_exception_message(report):
            (hasattr(report, "wasxfail") and report.skipped and "xfailed") or \
            (hasattr(report, "wasxfail") and report.failed and "xpassed") or \
            (hasattr(report, 'result') and report.result) or \
-           report.outcome
+        report.outcome
+
 
 @python_2_unicode_compatible
 class LabelsList(list):
