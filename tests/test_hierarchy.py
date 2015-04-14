@@ -9,6 +9,17 @@ Created on Oct 14, 2013
 from hamcrest import assert_that, contains, has_property, has_properties, contains_inanyorder
 
 
+def test_testsuite_path(report_for, testdir):
+    testsuite_path = "ololo"
+    testdir.mkdir(testsuite_path)
+    report = report_for(**{"%s/test_A" % testsuite_path: """
+        def test_A():
+            pass
+    """})
+
+    assert_that(report, has_property('{}name', '%s.test_A' % testsuite_path))
+
+
 def test_two_files(reports_for):
     reports = reports_for(test_foo="""
     def test_A():
