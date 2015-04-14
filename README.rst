@@ -178,6 +178,34 @@ Issues can be set for test.
          pass
 
 
+Test cases
+==========
+Test cases links can be set for test also.
+
+.. code:: python
+
+ import pytest
+
+ @pytest.allure.test_id('http://my.tms.org/TESTCASE-1')
+ def test_foo():
+     assert False
+
+
+ import allure
+
+ @allure.test_id('http://my.tms.org/browse/TESTCASE-2')
+ class TestBar:
+
+     # test will have TESTCASE-2 and TESTCASE-3 label
+     @allure.test_id('TESTCASE-3')
+     def test_bar1(self):
+         pass
+
+     # test will have only TESTCASE-2 label
+     def test_bar2(self):
+         pass
+
+
 Features & Stories
 ==================
 
