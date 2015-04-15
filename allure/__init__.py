@@ -11,7 +11,7 @@ __methods_to_provide = [
     'story',
     'severity',
     'issue',
-    'test_id',
+    'testcase',
     'environment',
     'attach_type',
 ]
