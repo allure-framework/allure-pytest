@@ -154,6 +154,12 @@ class AllureHelper(object):
         """
         return self.label(Label.ISSUE, *issues)
 
+    def testcase(self, *testcases):
+        """
+        A decorator factory that returns ``pytest.mark`` for a given testcases.
+        """
+        return self.label(Label.TESTCASE, *testcases)
+
     def step(self, title):
         """
         A contextmanager/decorator for steps.

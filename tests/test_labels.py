@@ -232,3 +232,31 @@ def test_issues(report_for):
         has_label('TestMy.test_b', 'issue', 'Issue2'),
         has_label('TestMy.test_b', 'issue', 'Issue3'),
         has_label('TestMy.test_c', 'issue', 'Issue2')))
+
+def test_testcases(report_for):
+    """
+    Checks that issues markers for tests are shown in report.
+    """
+    report = report_for("""
+    import allure
+
+    @allure.testcase('http://my.bugtracker.com/TESTCASE-1')
+    def test_a(self):
+        pass
+
+    @allure.testcase('http://my.bugtracker.com/TESTCASE-2')
+    class TestMy:
+
+        @allure.testcase('http://my.bugtracker.com/TESTCASE-3')
+        def test_b(self):
+            pass
+
+        def test_c(self):
+            pass
+    """)
+
+    assert_that(report, all_of(
+        has_label('test_a', 'testcase', 'http://my.bugtracker.com/TESTCASE-1'),
+        has_label('TestMy.test_b', 'testcase', 'http://my.bugtracker.com/TESTCASE-2'),
+        has_label('TestMy.test_b', 'testcase', 'http://my.bugtracker.com/TESTCASE-3'),
+        has_label('TestMy.test_c', 'testcase', 'http://my.bugtracker.com/TESTCASE-2')))
