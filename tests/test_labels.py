@@ -256,7 +256,7 @@ def test_testcases(report_for):
     """)
 
     assert_that(report, all_of(
-        has_label('test_a', 'testcase', 'http://my.bugtracker.com/TESTCASE-1'),
-        has_label('TestMy.test_b', 'testcase', 'http://my.bugtracker.com/TESTCASE-2'),
-        has_label('TestMy.test_b', 'testcase', 'http://my.bugtracker.com/TESTCASE-3'),
-        has_label('TestMy.test_c', 'testcase', 'http://my.bugtracker.com/TESTCASE-2')))
+        has_label('test_a', 'testId', 'http://my.bugtracker.com/TESTCASE-1'),
+        has_label('TestMy.test_b', 'testId', 'http://my.bugtracker.com/TESTCASE-2'),
+        has_label('TestMy.test_b', 'testId', 'http://my.bugtracker.com/TESTCASE-3'),
+        has_label('TestMy.test_c', 'testId', 'http://my.bugtracker.com/TESTCASE-2')))
