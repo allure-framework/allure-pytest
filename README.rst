@@ -1,6 +1,10 @@
 Allure Pytest Adaptor
 =====================
 
+.. image:: https://badges.gitter.im/Join%20Chat.svg
+   :alt: Join the chat at https://gitter.im/allure-framework/allure-python
+   :target: https://gitter.im/allure-framework/allure-python?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+
 .. image:: https://travis-ci.org/allure-framework/allure-python.svg?branch=master
         :alt: Build Status
         :target: https://travis-ci.org/allure-framework/allure-python/
