@@ -8,12 +8,11 @@ Created on Jun 5, 2014
 from __future__ import absolute_import
 
 import pytest
-import os
-import threading
 from .matchers import has_label
 from hamcrest import assert_that, equal_to, has_length, is_not, has_property, has_properties, has_item, anything, all_of, any_of
 
 from allure.constants import Label
+from allure.utils import thread_tag
 
 
 def has_label_length(test_name, label_length):
@@ -276,5 +275,5 @@ def test_thread_label(report_for):
     """)
 
     assert_that(report, has_label('test_foo',
-                                  label_value='{0}-{1}'.format(os.getpid(), threading.current_thread().name),
+                                  label_value=thread_tag(),
                                   label_name=Label.THREAD))

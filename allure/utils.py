@@ -11,6 +11,8 @@ Created on Oct 22, 2013
 import time
 import hashlib
 import inspect
+import os
+import threading
 
 from six import text_type, binary_type, python_2_unicode_compatible, u
 from six.moves import filter
@@ -136,6 +138,10 @@ def get_exception_message(report):
            (hasattr(report, "wasxfail") and report.failed and "xpassed") or \
            (hasattr(report, 'result') and report.result) or \
         report.outcome
+
+
+def thread_tag():
+    return '{0}-{1}'.format(os.getpid(), threading.current_thread().name)
 
 
 @python_2_unicode_compatible
