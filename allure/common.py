@@ -142,7 +142,7 @@ class AllureImpl(object):
         """
         labels = labels or LabelsList()
 
-        if Label.SEVERITY not in dict(labels).keys():
+        if Label.SEVERITY not in dict(labels):
             labels.append(TestLabel(name=Label.SEVERITY, value=Severity.NORMAL))
         labels.append(TestLabel(name=Label.THREAD, value=thread_tag()))
 
