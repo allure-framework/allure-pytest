@@ -141,6 +141,9 @@ def get_exception_message(report):
 
 
 def thread_tag():
+    """
+    Return a special build_tag value, consists of PID and thread_name.
+    """
     return '{0}-{1}'.format(os.getpid(), threading.current_thread().name)
 
 
