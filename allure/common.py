@@ -10,6 +10,7 @@ from contextlib import contextmanager
 from functools import wraps
 import os
 import uuid
+import threading
 
 from _pytest.runner import Skipped
 from _pytest.skipping import XFailed
@@ -17,9 +18,9 @@ from _pytest.skipping import XFailed
 from lxml import etree
 import py
 
-from allure.constants import AttachmentType, Status
-from allure.structure import Attach, TestStep, TestCase, TestSuite, Failure, Environment, EnvParameter
-from allure.utils import now
+from allure.constants import AttachmentType, Status, Label, Severity
+from allure.structure import Attach, TestStep, TestCase, TestSuite, Failure, Environment, EnvParameter, TestLabel
+from allure.utils import now, LabelsList
 
 
 class StepContext:
@@ -140,11 +141,17 @@ class AllureImpl(object):
         """
         Starts a new :py:class:`allure.structure.TestCase`
         """
+        labels = labels or LabelsList()
+        if not labels or Label.SEVERITY not in dict(labels).keys():
+            labels.append(TestLabel(name=Label.SEVERITY, value=Severity.NORMAL))
+        if not labels or Label.THREAD not in dict(labels).keys():
+            labels.append(TestLabel(name=Label.THREAD, value='{0}-{1}'.format(os.getpid(), threading.current_thread().name)))
+
         test = TestCase(name=name,
                         description=description,
                         start=now(),
                         attachments=[],
-                        labels=labels or [],
+                        labels=labels,
                         steps=[])
         self.stack.append(test)
 

@@ -8,8 +8,12 @@ Created on Jun 5, 2014
 from __future__ import absolute_import
 
 import pytest
+import os
+import threading
 from .matchers import has_label
 from hamcrest import assert_that, equal_to, has_length, is_not, has_property, has_properties, has_item, anything, all_of, any_of
+
+from allure.constants import Label
 
 
 def has_label_length(test_name, label_length):
@@ -72,12 +76,12 @@ def test_labels_inheritance(report_for):
     """)
 
     assert_that(report, all_of(
-        has_label_length('TestMy.test_a', 4),
+        has_label_length('TestMy.test_a', 6),   # 4 from test plus severity-label, plus thread-label
         has_label('TestMy.test_a', 'label_name1', 'label_value1'),
         has_label('TestMy.test_a', 'label_name2', 'label_value2'),
         has_label('TestMy.test_a', 'label_name3', 'label_value3'),
         has_label('TestMy.test_a', 'label_name4', 'label_value4'),
-        has_label_length('TestMy.test_b', 2),
+        has_label_length('TestMy.test_b', 4),   # 2 from test plus severity-label, plus thread-label
         has_label('TestMy.test_a', 'label_name1', 'label_value1'),
         has_label('TestMy.test_a', 'label_name2', 'label_value2')))
 
@@ -123,11 +127,11 @@ def test_feature_and_stories_inheritance(report_for):
     """)
 
     assert_that(report, all_of(
-        has_label_length('TestMy.test_a', 3),
+        has_label_length('TestMy.test_a', 5),   # 3 from test plus severity-label, plus thread-label
         has_label('TestMy.test_a', 'feature', 'Feature1'),
         has_label('TestMy.test_a', 'feature', 'Feature2'),
         has_label('TestMy.test_a', 'story', 'Story1'),
-        has_label_length('TestMy.test_b', 2),
+        has_label_length('TestMy.test_b', 4),   # 2 from test plus severity-label, plus thread-label
         has_label('TestMy.test_a', 'feature', 'Feature1'),
         has_label('TestMy.test_a', 'feature', 'Feature2')))
 
@@ -233,6 +237,7 @@ def test_issues(report_for):
         has_label('TestMy.test_b', 'issue', 'Issue3'),
         has_label('TestMy.test_c', 'issue', 'Issue2')))
 
+
 def test_testcases(report_for):
     """
     Checks that issues markers for tests are shown in report.
@@ -260,3 +265,16 @@ def test_testcases(report_for):
         has_label('TestMy.test_b', 'testId', 'http://my.bugtracker.com/TESTCASE-2'),
         has_label('TestMy.test_b', 'testId', 'http://my.bugtracker.com/TESTCASE-3'),
         has_label('TestMy.test_c', 'testId', 'http://my.bugtracker.com/TESTCASE-2')))
+
+
+def test_thread_label(report_for):
+    report = report_for("""
+    import pytest
+
+    def test_foo():
+        pass
+    """)
+
+    assert_that(report, has_label('test_foo',
+                                  label_value='{0}-{1}'.format(os.getpid(), threading.current_thread().name),
+                                  label_name=Label.THREAD))

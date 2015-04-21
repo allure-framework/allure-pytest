@@ -26,6 +26,17 @@ def has_test_with_severity(test_name, severity_level):
     return has_label(test_name, label_value=severity_level, label_name='severity')
 
 
+def test_default_severity(report_for):
+    report = report_for("""
+    import pytest
+
+    def test_foo():
+        pass
+    """)
+
+    assert_that(report, has_test_with_severity('test_foo', Severity.NORMAL))
+
+
 @pytest.mark.parametrize('mark_way', ['@pytest.allure.%s',
                                       '@pytest.allure.severity(pytest.allure.severity_level.%s)'
                                       ], ids=['Short', 'Full'])
@@ -39,7 +50,7 @@ def test_method_severity(report_for, name, value, mark_way):
         pass
     """ % (mark_way % name))
 
-    assert_that(report.findall(".//test-case/labels/label"), contains(severity_element(value)))
+    assert_that(report, has_test_with_severity('test_foo', value))
 
 
 def test_class_severity(report_for):
