@@ -24,6 +24,7 @@ class Label(object):
     ISSUE = 'issue'
     TESTCASE = 'testId'
     THREAD = 'thread'
+    HOST = 'host'
 
 
 class Severity(object):
