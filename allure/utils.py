@@ -64,14 +64,6 @@ def now():
     return sec2ms(time.time())
 
 
-def severity_of(item):
-    severity_marker = item.get_marker('allure_label')
-    if severity_marker:
-        return severity_marker.args[0]
-    else:
-        return Severity.NORMAL
-
-
 def labels_of(item):
     """
     Returns list of TestLabel elements.

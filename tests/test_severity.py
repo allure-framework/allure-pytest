@@ -117,13 +117,12 @@ def test_module_severity(report_for):
     ))
 
 
-@pytest.mark.parametrize('severities', [
-                                       [Severity.CRITICAL],
-                                       [Severity.CRITICAL, Severity.MINOR],
-                                       [Severity.CRITICAL, Severity.MINOR, Severity.NORMAL],
-                                       [Severity.TRIVIAL],
-                                       [Severity.BLOCKER],
-                                       ])
+@pytest.mark.parametrize('severities', [[Severity.CRITICAL],
+                                        [Severity.CRITICAL, Severity.MINOR],
+                                        [Severity.CRITICAL, Severity.MINOR, Severity.NORMAL],
+                                        [Severity.TRIVIAL],
+                                        [Severity.BLOCKER],
+                                        ])
 def test_run_only(report_for, severities):
     """
     Checks that running for given severities runs only selected tests
