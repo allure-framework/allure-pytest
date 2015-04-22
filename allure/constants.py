@@ -23,6 +23,7 @@ class Label(object):
     SEVERITY = 'severity'
     ISSUE = 'issue'
     TESTCASE = 'testId'
+    THREAD = 'thread'
 
 
 class Severity(object):

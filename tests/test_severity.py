@@ -39,7 +39,7 @@ def test_method_severity(report_for, name, value, mark_way):
         pass
     """ % (mark_way % name))
 
-    assert_that(report.findall(".//test-case/labels/label"), contains(severity_element(value)))
+    assert_that(report, has_test_with_severity('test_foo', value))
 
 
 def test_class_severity(report_for):
