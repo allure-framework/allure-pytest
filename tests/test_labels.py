@@ -263,6 +263,6 @@ def test_environ_labels(report_for):
     """)
 
     assert_that(report, all_of(
-        has_label('test_foo',label_value=thread_tag(), label_name=Label.THREAD),
-        has_label('test_foo',label_value=host_tag(), label_name=Label.HOST)
+        has_label('test_foo', label_value=thread_tag(), label_name=Label.THREAD),
+        has_label('test_foo', label_value=host_tag(), label_name=Label.HOST)
     ))
