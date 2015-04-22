@@ -148,4 +148,5 @@ def test_run_only(report_for, severities):
     assert_that(report.xpath(".//test-case"), contains(
         all_of(has_property('name', 'test_a'), has_property('attrib', has_entry('status', a_status))),
         all_of(has_property('name', 'test_b'), has_property('attrib', has_entry('status', b_status))),
-        all_of(has_property('name', 'test_c'), has_property('attrib', has_entry('status', c_status)))))
+        all_of(has_property('name', 'test_c'), has_property('attrib', has_entry('status', c_status)))
+    ))
