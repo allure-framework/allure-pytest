@@ -75,12 +75,12 @@ def test_labels_inheritance(report_for):
     """)
 
     assert_that(report, all_of(
-        has_label_length('TestMy.test_a', 6),   # 4 from test plus severity-label, plus thread-label
+        has_label_length('TestMy.test_a', 5),   # 4 from test plus thread-label
         has_label('TestMy.test_a', 'label_name1', 'label_value1'),
         has_label('TestMy.test_a', 'label_name2', 'label_value2'),
         has_label('TestMy.test_a', 'label_name3', 'label_value3'),
         has_label('TestMy.test_a', 'label_name4', 'label_value4'),
-        has_label_length('TestMy.test_b', 4),   # 2 from test plus severity-label, plus thread-label
+        has_label_length('TestMy.test_b', 3),   # 2 from test plus thread-label
         has_label('TestMy.test_a', 'label_name1', 'label_value1'),
         has_label('TestMy.test_a', 'label_name2', 'label_value2')))
 
@@ -126,11 +126,11 @@ def test_feature_and_stories_inheritance(report_for):
     """)
 
     assert_that(report, all_of(
-        has_label_length('TestMy.test_a', 5),   # 3 from test plus severity-label, plus thread-label
+        has_label_length('TestMy.test_a', 4),   # 3 from test plus thread-label
         has_label('TestMy.test_a', 'feature', 'Feature1'),
         has_label('TestMy.test_a', 'feature', 'Feature2'),
         has_label('TestMy.test_a', 'story', 'Story1'),
-        has_label_length('TestMy.test_b', 4),   # 2 from test plus severity-label, plus thread-label
+        has_label_length('TestMy.test_b', 3),   # 2 from test plus thread-label
         has_label('TestMy.test_a', 'feature', 'Feature1'),
         has_label('TestMy.test_a', 'feature', 'Feature2')))
 

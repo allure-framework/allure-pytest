@@ -26,17 +26,6 @@ def has_test_with_severity(test_name, severity_level):
     return has_label(test_name, label_value=severity_level, label_name='severity')
 
 
-def test_default_severity(report_for):
-    report = report_for("""
-    import pytest
-
-    def test_foo():
-        pass
-    """)
-
-    assert_that(report, has_test_with_severity('test_foo', Severity.NORMAL))
-
-
 @pytest.mark.parametrize('mark_way', ['@pytest.allure.%s',
                                       '@pytest.allure.severity(pytest.allure.severity_level.%s)'
                                       ], ids=['Short', 'Full'])
@@ -142,7 +131,7 @@ def test_run_only(report_for, severities):
         pass
     """, extra_run_args=['--allure_severities', ','.join(severities)])
 
-    a_status, b_status, c_status = [Status.PASSED if s in severities else Status.CANCELED for s in [Severity.CRITICAL, Severity.MINOR, Severity.NORMAL]]
+    a_status, b_status, c_status = [Status.PASSED if s in severities else Status.CANCELED for s in [Severity.CRITICAL, Severity.MINOR, '']]
 
     assert_that(report.xpath(".//test-case"), contains(
         all_of(has_property('name', 'test_a'), has_property('attrib', has_entry('status', a_status))),
