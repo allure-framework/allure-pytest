@@ -20,7 +20,7 @@ from traceback import format_exception_only
 
 from _pytest.python import Module
 
-from allure.constants import Label
+from allure.constants import Label, Severity
 
 
 def parents_of(item):
@@ -64,6 +64,14 @@ def now():
     return sec2ms(time.time())
 
 
+def severity_of(item):
+    severity_marker = item.get_marker('allure_label')
+    if severity_marker:
+        return severity_marker.args[0]
+    else:
+        return Severity.NORMAL
+
+
 def labels_of(item):
     """
     Returns list of TestLabel elements.
@@ -90,6 +98,10 @@ def labels_of(item):
         label_name = label_marker.name.split('.', 1)[-1]
         for label_value in label_marker.args or ():
             labels.append(TestLabel(name=label_name, value=label_value))
+
+    if Label.SEVERITY not in dict(labels):
+        labels.append(TestLabel(name=Label.SEVERITY, value=Severity.NORMAL))
+    labels.append(TestLabel(name=Label.THREAD, value=thread_tag()))
 
     return labels
 

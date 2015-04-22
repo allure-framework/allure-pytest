@@ -17,9 +17,9 @@ from _pytest.skipping import XFailed
 from lxml import etree
 import py
 
-from allure.constants import AttachmentType, Status, Label, Severity
-from allure.structure import Attach, TestStep, TestCase, TestSuite, Failure, Environment, EnvParameter, TestLabel
-from allure.utils import now, thread_tag, LabelsList
+from allure.constants import AttachmentType, Status
+from allure.structure import Attach, TestStep, TestCase, TestSuite, Failure, Environment, EnvParameter
+from allure.utils import now
 
 
 class StepContext:
@@ -140,17 +140,11 @@ class AllureImpl(object):
         """
         Starts a new :py:class:`allure.structure.TestCase`
         """
-        labels = labels or LabelsList()
-
-        if Label.SEVERITY not in dict(labels):
-            labels.append(TestLabel(name=Label.SEVERITY, value=Severity.NORMAL))
-        labels.append(TestLabel(name=Label.THREAD, value=thread_tag()))
-
         test = TestCase(name=name,
                         description=description,
                         start=now(),
                         attachments=[],
-                        labels=labels,
+                        labels=labels or [],
                         steps=[])
         self.stack.append(test)
 
