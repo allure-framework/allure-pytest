@@ -9,18 +9,10 @@ from __future__ import absolute_import
 
 import pytest
 from .matchers import has_label
-from hamcrest import assert_that, equal_to, has_length, is_not, has_property, has_properties, has_item, anything, all_of, any_of
+from hamcrest import assert_that, equal_to, is_not, has_property, has_properties, has_item, anything, all_of, any_of
 
 from allure.constants import Label
-from allure.utils import thread_tag
-
-
-def has_label_length(test_name, label_length):
-    return has_property('{}test-cases',
-                        has_property('test-case',
-                                     has_item(
-                                         has_properties({'name': equal_to(test_name),
-                                                         'labels': has_property('label', has_length(equal_to(label_length)))}))))
+from allure.utils import thread_tag, host_tag
 
 
 def has_failure(test_name, message=anything()):
@@ -75,12 +67,10 @@ def test_labels_inheritance(report_for):
     """)
 
     assert_that(report, all_of(
-        has_label_length('TestMy.test_a', 5),   # 4 from test plus thread-label
         has_label('TestMy.test_a', 'label_name1', 'label_value1'),
         has_label('TestMy.test_a', 'label_name2', 'label_value2'),
         has_label('TestMy.test_a', 'label_name3', 'label_value3'),
         has_label('TestMy.test_a', 'label_name4', 'label_value4'),
-        has_label_length('TestMy.test_b', 3),   # 2 from test plus thread-label
         has_label('TestMy.test_a', 'label_name1', 'label_value1'),
         has_label('TestMy.test_a', 'label_name2', 'label_value2')))
 
@@ -126,11 +116,9 @@ def test_feature_and_stories_inheritance(report_for):
     """)
 
     assert_that(report, all_of(
-        has_label_length('TestMy.test_a', 4),   # 3 from test plus thread-label
         has_label('TestMy.test_a', 'feature', 'Feature1'),
         has_label('TestMy.test_a', 'feature', 'Feature2'),
         has_label('TestMy.test_a', 'story', 'Story1'),
-        has_label_length('TestMy.test_b', 3),   # 2 from test plus thread-label
         has_label('TestMy.test_a', 'feature', 'Feature1'),
         has_label('TestMy.test_a', 'feature', 'Feature2')))
 
@@ -266,7 +254,7 @@ def test_testcases(report_for):
         has_label('TestMy.test_c', 'testId', 'http://my.bugtracker.com/TESTCASE-2')))
 
 
-def test_thread_label(report_for):
+def test_environ_labels(report_for):
     report = report_for("""
     import pytest
 
@@ -274,6 +262,7 @@ def test_thread_label(report_for):
         pass
     """)
 
-    assert_that(report, has_label('test_foo',
-                                  label_value=thread_tag(),
-                                  label_name=Label.THREAD))
+    assert_that(report, all_of(
+        has_label('test_foo', label_value=thread_tag(), label_name=Label.THREAD),
+        has_label('test_foo', label_value=host_tag(), label_name=Label.HOST)
+    ))
