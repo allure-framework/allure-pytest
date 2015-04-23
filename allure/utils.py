@@ -92,7 +92,7 @@ def labels_of(item):
         for label_value in label_marker.args or ():
             labels.append(TestLabel(name=label_name, value=label_value))
 
-    if not any([l for l in labels if l.name==Label.SEVERITY]):
+    if not any([l for l in labels if l.name == Label.SEVERITY]):
         labels.append(TestLabel(name=Label.SEVERITY, value=Severity.NORMAL))
 
     labels.append(TestLabel(name=Label.THREAD, value=thread_tag()))
