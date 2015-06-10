@@ -102,7 +102,8 @@ def test_xfail(report_for):
 
     assert_that(report, has_error(message='ololo',
                                   status=Status.PENDING,
-                                  trace=''))
+                                  trace=string_contains_in_order('assert False',
+                                                                 'AssertionError')))
 
 
 def test_skip(report_for):
