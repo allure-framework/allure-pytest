@@ -314,7 +314,7 @@ class AllureTestListener(object):
                 self._stop_case(report, status=Status.CANCELED)
 
     @pytest.mark.hookwrapper
-    def pytest_runtest_makereport(self, item, call, __multicall__):
+    def pytest_runtest_makereport(self, item, call):
         """
         That's the place we inject extra data into the report object from the actual Item.
         """
