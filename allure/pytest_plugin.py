@@ -281,7 +281,8 @@ class AllureTestListener(object):
         else:
             self.impl.stop_case(status)
 
-    def pytest_runtest_protocol(self, __multicall__, item, nextitem):
+    @pytest.mark.hookwrapper
+    def pytest_runtest_protocol(self, item, nextitem):
         if not self.testsuite:
             module = parent_module(item)
 
@@ -291,13 +292,11 @@ class AllureTestListener(object):
 
         name = '.'.join(mangle_testnames([x.name for x in parent_down_from_module(item)]))
         self.impl.start_case(name, description=item.function.__doc__, labels=labels_of(item))
-        result = __multicall__.execute()
+        yield
 
         if not nextitem or parent_module(item) != parent_module(nextitem):
             self.impl.stop_suite()
             self.testsuite = None
-
-        return result
 
     def pytest_runtest_logreport(self, report):
         if report.passed:
@@ -314,16 +313,15 @@ class AllureTestListener(object):
             else:
                 self._stop_case(report, status=Status.CANCELED)
 
-    def pytest_runtest_makereport(self, item, call, __multicall__):  # @UnusedVariable
+    @pytest.mark.hookwrapper
+    def pytest_runtest_makereport(self, item, call, __multicall__):
         """
         That's the place we inject extra data into the report object from the actual Item.
         """
-
-        report = __multicall__.execute()
-        report.__dict__.update(
+        report = yield
+        report.result.__dict__.update(
             exception=call.excinfo,
-            result=self.config.hook.pytest_report_teststatus(report=report)[0])  # get the failed/passed/xpassed thingy
-        return report
+            result=self.config.hook.pytest_report_teststatus(report=report.result)[0])  # get the failed/passed/xpassed thingy
 
     def pytest_sessionfinish(self):
         if self.testsuite:
