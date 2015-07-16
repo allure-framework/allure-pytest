@@ -319,9 +319,9 @@ class AllureTestListener(object):
         That's the place we inject extra data into the report object from the actual Item.
         """
         report = yield
-        report.result.__dict__.update(
+        report.get_result().__dict__.update(
             exception=call.excinfo,
-            result=self.config.hook.pytest_report_teststatus(report=report.result)[0])  # get the failed/passed/xpassed thingy
+            result=self.config.hook.pytest_report_teststatus(report=report.get_result())[0])  # get the failed/passed/xpassed thingy
 
     def pytest_sessionfinish(self):
         if self.testsuite:
