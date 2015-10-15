@@ -15,7 +15,7 @@ import os
 import threading
 import socket
 
-from six import text_type, binary_type, python_2_unicode_compatible, u
+from six import text_type, binary_type
 from six.moves import filter
 from traceback import format_exception_only
 
@@ -85,7 +85,7 @@ def labels_of(item):
 
         return markers
 
-    labels = LabelsList()
+    labels = []
     label_markers = get_marker_that_starts_with(item, Label.DEFAULT)
     for label_marker in label_markers:
         label_name = label_marker.name.split('.', 1)[-1]
@@ -159,37 +159,3 @@ def host_tag():
     Return a special host_tag value, representing current host.
     """
     return socket.gethostname()
-
-
-@python_2_unicode_compatible
-class LabelsList(list):
-
-    def __eq__(self, other):
-        if len(self) != len(other):
-            return False
-
-        other = other[:]
-        for el in self:
-            if el not in other:
-                return False
-
-            other.remove(el)
-
-        return True
-
-    def __add__(self, other):
-        return self.__class__(super(LabelsList, self).__add__(other))
-
-    def __and__(self, other):
-        result = self.__class__()
-        for el in self:
-            if el in other and el not in result:
-                result.append(el)
-
-        return result
-
-    def __str__(self):
-        return u(', ').join(map(text_type, [(el.name, el.value) for el in self]))
-
-    def __bytes__(self):
-        return self.__str__().encode('utf-8')

@@ -1,16 +1,15 @@
-import argparse
-from collections import namedtuple
-
-from _pytest.junitxml import mangle_testnames
 import pytest
+import argparse
+
+from collections import namedtuple
+from _pytest.junitxml import mangle_testnames
+from six import text_type
 
 from allure.common import AllureImpl, StepContext
-from allure.utils import LabelsList
 from allure.constants import Status, AttachmentType, Severity, \
     FAILED_STATUSES, Label, SKIPPED_STATUSES
 from allure.utils import parent_module, parent_down_from_module, labels_of, \
     all_of, get_exception_message
-from allure.structure import TestLabel
 
 
 def pytest_addoption(parser):
@@ -23,27 +22,29 @@ def pytest_addoption(parser):
 
     severities = [v for (_, v) in all_of(Severity)]
 
-    def severity_label_type(string):
-        entries = LabelsList([TestLabel(name=Label.SEVERITY, value=x) for x in string.split(',')])
+    def label_type(name, legal_values=set()):
+        """
+        argparse-type factory for labelish things.
+        processed value is set of tuples (name, value).
+        :param name: of label type (for future TestLabel things)
+        :param legal_values: a `set` of values that are legal for this label, if any limit whatsoever
+        :raises ArgumentTypeError: if `legal_values` are given and there are values that fall out of that
+        """
+        def a_label_type(string):
+            atoms = set(string.split(','))
+            if legal_values and not atoms < legal_values:
+                raise argparse.ArgumentTypeError('Illegal {} values: {}, only [{}] are allowed'.format(name, ', '.join(atoms - legal_values), ', '.join(legal_values)))
 
-        for entry in entries:
-            if entry.value not in severities:
-                raise argparse.ArgumentTypeError('Illegal severity value [%s], only values from [%s] are allowed.' % (entry.value, ', '.join(severities)))
+            return {(name, v) for v in atoms}
 
-        return entries
-
-    def features_label_type(string):
-        return LabelsList([TestLabel(name=Label.FEATURE, value=x) for x in string.split(',')])
-
-    def stories_label_type(string):
-        return LabelsList([TestLabel(name=Label.STORY, value=x) for x in string.split(',')])
+        return a_label_type
 
     parser.getgroup("general").addoption('--allure_severities',
                                          action="store",
                                          dest="allureseverities",
-                                         metavar="SEVERITIES_LIST",
-                                         default=LabelsList(),
-                                         type=severity_label_type,
+                                         metavar="SEVERITIES_SET",
+                                         default={},
+                                         type=label_type(name=Label.SEVERITY, legal_values=set(severities)),
                                          help="""Comma-separated list of severity names.
                                          Tests only with these severities will be run.
                                          Possible values are:%s.""" % ', '.join(severities))
@@ -51,18 +52,18 @@ def pytest_addoption(parser):
     parser.getgroup("general").addoption('--allure_features',
                                          action="store",
                                          dest="allurefeatures",
-                                         metavar="FEATURES_LIST",
-                                         default=LabelsList(),
-                                         type=features_label_type,
+                                         metavar="FEATURES_SET",
+                                         default={},
+                                         type=label_type(name=Label.FEATURE),
                                          help="""Comma-separated list of feature names.
                                          Run tests that have at least one of the specified feature labels.""")
 
     parser.getgroup("general").addoption('--allure_stories',
                                          action="store",
                                          dest="allurestories",
-                                         metavar="STORIES_LIST",
-                                         default=LabelsList(),
-                                         type=stories_label_type,
+                                         metavar="STORIES_SET",
+                                         default={},
+                                         type=label_type(name=Label.STORY),
                                          help="""Comma-separated list of story names.
                                          Run tests that have at least one of the specified story labels.""")
 
@@ -77,13 +78,14 @@ def pytest_configure(config):
 
 
 def pytest_runtest_setup(item):
-    item_labels = labels_of(item)
+    item_labels = {(l.name, l.value) for l in labels_of(item)}  # see label_type
 
-    option = item.config.option
-    arg_labels = option.allurefeatures + option.allurestories + option.allureseverities
+    arg_labels = set().union(item.config.option.allurefeatures,
+                             item.config.option.allurestories,
+                             item.config.option.allureseverities)
 
     if arg_labels and not item_labels & arg_labels:
-        pytest.skip('Not suitable with selected labels: %s.' % arg_labels)
+        pytest.skip('Not suitable with selected labels: %s.' % ', '.join(text_type(l) for l in sorted(arg_labels)))
 
 
 class LazyInitStepContext(StepContext):
