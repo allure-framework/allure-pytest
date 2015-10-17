@@ -99,6 +99,12 @@ class AllureTestListener(object):
         self.config = config
         self.environment = {}
 
+        # FIXME: that flag makes us pre-report failures in the makereport hook.
+        # it is here to cope with xdist's begavior regarding -x.
+        # see self.pytest_runtest_makereport and AllureAgregatingListener.pytest_sessionfinish
+
+        self._magicaldoublereport = hasattr(self.config, 'slaveinput') and self.config.getvalue("maxfail")
+
     @pytest.mark.hookwrapper
     def pytest_runtest_protocol(self, item, nextitem):
         self.test = TestCase(name='.'.join(mangle_testnames([x.name for x in parent_down_from_module(item)])),
@@ -107,7 +113,8 @@ class AllureTestListener(object):
                              attachments=[],
                              labels=labels_of(item),
                              status=None,
-                             steps=[])
+                             steps=[],
+                             id=str(uuid.uuid4()))  # for later resolution in AllureAgregatingListener.pytest_sessionfinish
 
         self.stack = [self.test]
 
@@ -171,7 +178,7 @@ class AllureTestListener(object):
             self.test.failure = Failure(message=(short_message + '...' * (len(skip_message) > trim_msg_len)),
                                         trace=status == Status.PENDING and report.longrepr or short_message != skip_message and skip_message or '')
 
-    def _stop_case(self, item, report):
+    def report_case(self, item, report):
         """
         Adds `self.test` to the `report` in a `AllureAggegatingListener`-understood way
         """
@@ -217,6 +224,10 @@ class AllureTestListener(object):
                 self._fill_case(report, call, status, Status.PASSED)
             elif report.failed:
                 self._fill_case(report, call, status, Status.FAILED)
+                # FIXME: this is here only to work around xdist's stupid -x thing when in exits BEFORE THE TEARDOWN test log. Meh, i should file an issue to xdist
+                if self._magicaldoublereport:
+                    # to minimize ze impact
+                    self.report_case(item, report)
             elif report.skipped:
                 if hasattr(report, 'wasxfail'):
                     self._fill_case(report, call, status, Status.PENDING)
@@ -241,7 +252,7 @@ class AllureTestListener(object):
                     # still, that's no big deal -- test has already failed
                     # TODO: think about that once again
                     self.test.status = Status.BROKEN
-            self._stop_case(item, report)
+            self.report_case(item, report)
 
 
 def pytest_runtest_setup(item):
@@ -425,13 +436,30 @@ class AllureAgregatingListener(object):
 
     def pytest_sessionfinish(self):
         """
-        We are done and have all the results in `self.testcases`
+        We are done and have all the results in `self.suites`
         Lets write em down.
+
+        But first we kinda-unify the test cases.
+
+        We expect cases to come from AllureTestListener -- and the have ._id field to manifest their identity.
+
+        Of all the test cases in suite.testcases we leave LAST with the same ID -- becase logreport can be sent MORE THAN ONE TIME
+        (namely, if the test fails and then gets broken -- to cope with the xdist's -x behavior we have to have tests even at CALL failures)
+
+        TODO: do it in a better, more efficient way
         """
 
         for s in self.suites.values():
             if s.tests:  # nobody likes empty suites
                 s.stop = max(case.stop for case in s.tests)
+
+                known_ids = set()
+                refined_tests = []
+                for t in s.tests[::-1]:
+                    if t.id not in known_ids:
+                        known_ids.add(t.id)
+                        refined_tests.append(t)
+                s.tests[::-1] = refined_tests
 
                 with self.impl._reportfile('%s-testsuite.xml' % uuid.uuid4()) as f:
                     self.impl._write_xml(f, s)

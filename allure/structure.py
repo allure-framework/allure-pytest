@@ -6,7 +6,8 @@ Created on Oct 23, 2013
 @author: pupssman
 '''
 
-from allure.rules import xmlfied, Attribute, Element, WrappedMany, Nested, Many
+from allure.rules import xmlfied, Attribute, Element, WrappedMany, Nested, Many, \
+    Ignored
 from allure.constants import ALLURE_NAMESPACE, COMMON_NAMESPACE
 
 
@@ -44,6 +45,7 @@ class IterAttachmentsMixin(object):
 
 class TestCase(IterAttachmentsMixin,
                xmlfied('test-case',
+                       id=Ignored(),  # internal field, see AllureTestListener
                        name=Element(),
                        title=Element().if_(lambda x: x),
                        description=Element().if_(lambda x: x),

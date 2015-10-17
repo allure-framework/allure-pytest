@@ -65,6 +65,11 @@ def legalize_xml(arg):
     return illegal_xml_re.sub(repl, arg)
 
 
+class Ignored(Rule):
+    def if_(self, check):
+        return False
+
+
 class Element(Rule):
 
     def __init__(self, name='', namespace=''):
