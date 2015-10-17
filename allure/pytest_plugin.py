@@ -93,6 +93,7 @@ class AllureTestListener(object):
 
     def __init__(self, config):
         self.config = config
+        self.environment = {}
 
     @pytest.mark.hookwrapper
     def pytest_runtest_protocol(self, item, nextitem):
@@ -163,10 +164,11 @@ class AllureTestListener(object):
                                         trace=status == Status.PENDING and report.longrepr or short_message != skip_message and skip_message or None)
 
         parent = parent_module(item)
-        # we attach a four-tuple: (test module ID, test module name, test module doc, TestCase)
+        # we attach a four-tuple: (test module ID, test module name, test module doc, environment, TestCase)
         report.__dict__.update(_allure_result=pickle.dumps((parent.nodeid,
                                                             parent.module.__name__,
                                                             parent.module.__doc__ or '',
+                                                            self.environment,
                                                             self.test)))
 
     @pytest.mark.hookwrapper
@@ -335,7 +337,7 @@ class AllureHelper(object):
 
     def environment(self, **env_dict):
         if self._allurelistener:
-            self._allurelistener.impl.environment.update(env_dict)
+            self._allurelistener.environment.update(env_dict)
 
     @property
     def attach_type(self):
@@ -406,7 +408,9 @@ class AllureAgregatingListener(object):
 
     def pytest_runtest_logreport(self, report):
         if hasattr(report, '_allure_result'):
-            module_id, module_name, module_doc, testcase = pickle.loads(report._allure_result)
+            module_id, module_name, module_doc, environment, testcase = pickle.loads(report._allure_result)
+
+            self.impl.environment.update(environment)
 
             for a in testcase.iter_attachments():
                 self.write_attach(a)
@@ -415,7 +419,7 @@ class AllureAgregatingListener(object):
                                                         description=module_doc,
                                                         tests=[],
                                                         labels=[],
-                                                        start=now(),
+                                                        start=testcase.start,  # first case starts the suite!
                                                         stop=None)).tests.append(testcase)
 
 
