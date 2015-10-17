@@ -142,9 +142,13 @@ class AllureTestListener(object):
         step = self.stack.pop()
         step.stop = now()
 
-    def _fill_case(self, report, status):
+    def _fill_case(self, report, call, pyteststatus, status):
         """
         Finalizes with important data
+        :param report: py.test's `TestReport`
+        :param call: py.test's `CallInfo`
+        :param pyteststatus: the failed/xfailed/xpassed thing
+        :param status: a :py:class:`allure.constants.Status` entry
         """
         [self.attach(name, contents, AttachmentType.TEXT) for (name, contents) in dict(report.sections).items()]
 
@@ -152,7 +156,7 @@ class AllureTestListener(object):
         self.test.status = status
 
         if status in FAILED_STATUSES:
-            self.test.failure = Failure(message=get_exception_message(report),
+            self.test.failure = Failure(message=get_exception_message(call.excinfo, pyteststatus, report),
                                         trace=report.longrepr or hasattr(report, 'wasxfail') and report.wasxfail)
         elif status in SKIPPED_STATUSES:
             skip_message = type(report.longrepr) == tuple and report.longrepr[2] or report.wasxfail
@@ -202,35 +206,32 @@ class AllureTestListener(object):
         report = (yield).get_result()
 
         status = self.config.hook.pytest_report_teststatus(report=report)
-
-        report.__dict__.update(
-            exception=call.excinfo,
-            result=status and status[0])  # get the failed/passed/xpassed thingy
+        status = status and status[0]
 
         if report.when == 'call':
             if report.passed:
-                self._fill_case(report, Status.PASSED)
+                self._fill_case(report, call, status, Status.PASSED)
             elif report.failed:
-                self._fill_case(report, Status.FAILED)
+                self._fill_case(report, call, status, Status.FAILED)
             elif report.skipped:
                 if hasattr(report, 'wasxfail'):
-                    self._fill_case(report, Status.PENDING)
+                    self._fill_case(report, call, status, Status.PENDING)
                 else:
-                    self._fill_case(report, Status.CANCELED)
+                    self._fill_case(report, call, status, Status.CANCELED)
         elif report.when == 'setup':  # setup / teardown
             if report.failed:
-                self._fill_case(report, Status.BROKEN)
+                self._fill_case(report, call, status, Status.BROKEN)
             elif report.skipped:
                 if hasattr(report, 'wasxfail'):
-                    self._fill_case(report, Status.PENDING)
+                    self._fill_case(report, call, status, Status.PENDING)
                 else:
-                    self._fill_case(report, Status.CANCELED)
+                    self._fill_case(report, call, status, Status.CANCELED)
         elif report.when == 'teardown':
             # as teardown is always called for testitem -- report our status here
             if not report.passed:
                 if self.test.status not in FAILED_STATUSES:
                     # if test was OK but failed at teardown => broken
-                    self._fill_case(report, Status.BROKEN)
+                    self._fill_case(report, call, status, Status.BROKEN)
                 else:
                     # mark it broken so, well, someone has idea of teardown failure
                     # still, that's no big deal -- test has already failed
@@ -484,7 +485,7 @@ class AllureCollectionListener(object):
 
             self.fails.append(CollectFail(name=mangle_testnames(report.nodeid.split("::"))[-1],
                                           status=status,
-                                          message=get_exception_message(report),
+                                          message=get_exception_message(None, None, report),
                                           trace=report.longrepr))
 
     def pytest_collection_finish(self):

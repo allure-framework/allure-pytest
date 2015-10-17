@@ -136,15 +136,16 @@ def present_exception(e):
         return unicodify(format_exception_only(SyntaxError, e))
 
 
-def get_exception_message(report):
+def get_exception_message(excinfo, pyteststatus, report):
     """
+    :param excinfo: a :py:class:`py._code.code.ExceptionInfo` from call.excinfo
+    :param pyteststatus: the failed/xfailed/xpassed thing
     get exception message from pytest's internal ``report`` object
     """
-    return (getattr(report, 'exception', None) and present_exception(report.exception.value)) or \
+    return (excinfo and present_exception(excinfo.value)) or \
            (hasattr(report, "wasxfail") and report.skipped and "xfailed") or \
            (hasattr(report, "wasxfail") and report.failed and "xpassed") or \
-           (hasattr(report, 'result') and report.result) or \
-        report.outcome
+           pyteststatus or report.outcome
 
 
 def thread_tag():
