@@ -145,7 +145,7 @@ def get_exception_message(excinfo, pyteststatus, report):
     return (excinfo and present_exception(excinfo.value)) or \
            (hasattr(report, "wasxfail") and report.skipped and "xfailed") or \
            (hasattr(report, "wasxfail") and report.failed and "xpassed") or \
-           pyteststatus or report.outcome
+           (pyteststatus) or report.outcome
 
 
 def thread_tag():
