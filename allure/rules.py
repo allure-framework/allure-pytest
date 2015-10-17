@@ -13,7 +13,6 @@ from lxml import objectify
 from namedlist import namedlist
 
 from allure.utils import unicodify
-import copy_reg
 
 
 def element_maker(name, namespace):

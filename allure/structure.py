@@ -13,12 +13,18 @@ from allure.constants import ALLURE_NAMESPACE, COMMON_NAMESPACE
 class Attach(xmlfied('attachment',
                      source=Attribute(),
                      title=Attribute(),
-                     type=Attribute())):pass
+                     type=Attribute())):
+    """
+    source holds FS path to the data, type -- MIME-type of the contents
+    """
 
 
 class Failure(xmlfied('failure',
                       message=Element(),
-                      trace=Element('stack-trace'))):pass
+                      trace=Element('stack-trace'))):
+    """
+    trace should be more detailed than message
+    """
 
 
 class TestCase(xmlfied('test-case',
@@ -31,7 +37,8 @@ class TestCase(xmlfied('test-case',
                        labels=WrappedMany(Nested()),
                        status=Attribute(),
                        start=Attribute(),
-                       stop=Attribute())):pass
+                       stop=Attribute())):
+    pass
 
 
 class TestSuite(xmlfied('test-suite',
@@ -42,7 +49,8 @@ class TestSuite(xmlfied('test-suite',
                         tests=WrappedMany(Nested(), name='test-cases'),
                         labels=WrappedMany(Nested()),
                         start=Attribute(),
-                        stop=Attribute())):pass
+                        stop=Attribute())):
+    pass
 
 
 class TestStep(xmlfied('step',
@@ -52,22 +60,26 @@ class TestStep(xmlfied('step',
                        steps=WrappedMany(Nested()),
                        start=Attribute(),
                        stop=Attribute(),
-                       status=Attribute())):pass
+                       status=Attribute())):
+    pass
 
 
 class TestLabel(xmlfied('label',
                         name=Attribute(),
-                        value=Attribute())):pass
+                        value=Attribute())):
+    pass
 
 
 class EnvParameter(xmlfied('parameter',
                            name=Element(),
                            key=Element(),
-                           value=Element())):pass
+                           value=Element())):
+    pass
 
 
 class Environment(xmlfied('environment',
                           namespace=COMMON_NAMESPACE,
                           id=Element(),
                           name=Element(),
-                          parameters=Many(Nested()))):pass
+                          parameters=Many(Nested()))):
+    pass
