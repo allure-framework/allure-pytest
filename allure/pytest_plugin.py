@@ -104,20 +104,20 @@ class AllureTestListener(object):
                              status=Status.FAILED,
                              steps=[])
 
-        self.stack = self.test
+        self.stack = [self.test]
 
         yield
 
         self.test = None
-        self.stack = None
+        self.stack = []
 
     def attach(self, title, contents, attach_type):
         """
-        Attaches ``contents`` with ``title`` and ``attach_type`` to the current active thing
+        Store attachment object in current state for later actual write in the `AllureAgregatingListener.write_attach`
         """
         attach = Attach(source=contents,  # we later re-save those, oh my...
                         title=title,
-                        type=attach_type.mime_type)
+                        type=attach_type)
         self.stack[-1].attachments.append(attach)
 
     def start_step(self, name):
@@ -145,7 +145,7 @@ class AllureTestListener(object):
         """
         Finalizes with important data the test at the top of ``self.stack`` and returns it
         """
-        # [self.attach(name, contents, AttachmentType.TEXT) for (name, contents) in dict(report.sections).items()]
+        [self.attach(name, contents, AttachmentType.TEXT) for (name, contents) in dict(report.sections).items()]
 
         self.test.stop = now()
         self.test.status = status
@@ -393,9 +393,23 @@ class AllureAgregatingListener(object):
 
         self.impl.store_environment()
 
+    def write_attach(self, attachment):
+        """
+        Writes attachment object from the `AllureTestListener` to the FS, fixing it fields
+
+        :param attachment: a :py:class:`allure.structure.Attach` object
+        """
+
+        # OMG, that is bad
+        attachment.source = self.impl._save_attach(attachment.source, attachment.type)
+        attachment.type = attachment.type.mime_type
+
     def pytest_runtest_logreport(self, report):
         if hasattr(report, '_allure_result'):
             module_id, module_name, module_doc, testcase = pickle.loads(report._allure_result)
+
+            for a in testcase.iter_attachments():
+                self.write_attach(a)
 
             self.suites.setdefault(module_id, TestSuite(name=module_name,
                                                         description=module_doc,

@@ -27,7 +27,23 @@ class Failure(xmlfied('failure',
     """
 
 
-class TestCase(xmlfied('test-case',
+class IterAttachmentsMixin(object):
+    """
+    Adds `iter_attachments` generator-method that yields own attachments and steps' attachments.
+    Works if the class has `attachments` and `steps`.
+    """
+
+    def iter_attachments(self):
+        for a in self.attachments:
+            yield a
+
+        for s in self.steps:
+            for a in s.attachments:
+                yield a
+
+
+class TestCase(IterAttachmentsMixin,
+               xmlfied('test-case',
                        name=Element(),
                        title=Element().if_(lambda x: x),
                        description=Element().if_(lambda x: x),
@@ -53,7 +69,8 @@ class TestSuite(xmlfied('test-suite',
     pass
 
 
-class TestStep(xmlfied('step',
+class TestStep(IterAttachmentsMixin,
+               xmlfied('step',
                        name=Element(),
                        title=Element().if_(lambda x: x),
                        attachments=WrappedMany(Nested()),
