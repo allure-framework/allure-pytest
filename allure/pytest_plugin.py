@@ -1,3 +1,4 @@
+import uuid
 import pickle
 import pytest
 import argparse
@@ -12,8 +13,6 @@ from allure.constants import Status, AttachmentType, Severity, \
 from allure.utils import parent_module, parent_down_from_module, labels_of, \
     all_of, get_exception_message, now
 from allure.structure import TestCase, TestStep, Attach, TestSuite, Failure
-from pickle import loads
-import uuid
 
 
 def pytest_addoption(parser):
@@ -74,7 +73,7 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     reportdir = config.option.allurereportdir
-    testlistener = AllureTestListener()
+    testlistener = AllureTestListener(config)
     pytest.allure._allurelistener = testlistener
     config.pluginmanager.register(testlistener)
 
@@ -86,7 +85,15 @@ def pytest_configure(config):
 
 class AllureTestListener(object):
     """
+    Per-test listener.
+    Is responsible for recording in-test data and for attaching it to the test report thing.
+
+    The per-test reports are handled by `AllureAgregatingListener` at the `pytest_runtest_logreport` hook.
     """
+
+    def __init__(self, config):
+        self.config = config
+
     @pytest.mark.hookwrapper
     def pytest_runtest_protocol(self, item, nextitem):
         self.test = TestCase(name='.'.join(mangle_testnames([x.name for x in parent_down_from_module(item)])),
@@ -98,6 +105,7 @@ class AllureTestListener(object):
                              steps=[])
 
         self.stack = self.test
+
         yield
 
         self.test = None
@@ -107,7 +115,7 @@ class AllureTestListener(object):
         """
         Attaches ``contents`` with ``title`` and ``attach_type`` to the current active thing
         """
-        attach = Attach(source=self._save_attach(contents, attach_type=attach_type),
+        attach = Attach(source=contents,  # we later re-save those, oh my...
                         title=title,
                         type=attach_type.mime_type)
         self.stack[-1].attachments.append(attach)
@@ -133,11 +141,11 @@ class AllureTestListener(object):
         step = self.stack.pop()
         step.stop = now()
 
-    def _stop_case(self, report, status=None):
+    def _stop_case(self, item, report, status=None):
         """
         Finalizes with important data the test at the top of ``self.stack`` and returns it
         """
-        # FIXME: [self.attach(name, contents, AttachmentType.TEXT) for (name, contents) in dict(report.sections).items()]
+        # [self.attach(name, contents, AttachmentType.TEXT) for (name, contents) in dict(report.sections).items()]
 
         self.test.stop = now()
         self.test.status = status
@@ -154,25 +162,41 @@ class AllureTestListener(object):
             self.test.failure = Failure(message=(short_message + '...' * (len(skip_message) > trim_msg_len)),
                                         trace=status == Status.PENDING and report.longrepr or short_message != skip_message and skip_message or None)
 
-        report.__dict__.update(_allure_result=pickle.dumps(self.test))
+        parent = parent_module(item)
+        # we attach a four-tuple: (test module ID, test module name, test module doc, TestCase)
+        report.__dict__.update(_allure_result=pickle.dumps((parent.nodeid,
+                                                            parent.module.__name__,
+                                                            parent.module.__doc__ or '',
+                                                            self.test)))
 
     @pytest.mark.hookwrapper
     def pytest_runtest_makereport(self, item, call):
         report = (yield).get_result()
 
+        status = self.config.hook.pytest_report_teststatus(report=report)
+
+        report.__dict__.update(
+            exception=call.excinfo,
+            result=status and status[0])  # get the failed/passed/xpassed thingy
+
+        test_status = None  # None means 'should not report yet'
+
         if report.passed:
             if report.when == "call":  # ignore setup/teardown
-                self._stop_case(report, status=Status.PASSED)
+                test_status = Status.PASSED
         elif report.failed:
             if report.when != "call":
-                self._stop_case(report, status=Status.BROKEN)
+                test_status = Status.BROKEN
             else:
-                self._stop_case(report, status=Status.FAILED)
+                test_status = Status.FAILED
         elif report.skipped:
             if hasattr(report, 'wasxfail'):
-                self._stop_case(report, status=Status.PENDING)
+                test_status = Status.PENDING
             else:
-                self._stop_case(report, status=Status.CANCELED)
+                test_status = Status.CANCELED
+
+        if test_status:
+            self._stop_case(item, report, test_status)
 
 
 def pytest_runtest_setup(item):
@@ -350,28 +374,9 @@ class AllureAgregatingListener(object):
 
     def __init__(self, logdir, config):
         self.impl = AllureImpl(logdir)
-        self.config = config
 
-        # tuples (testitem, TestCase object)
-        self.testscases = []
-
-    @pytest.mark.hookwrapper
-    def x_pytest_runtest_protocol(self, item, nextitem):
-        if not self.testsuite:
-            module = parent_module(item)
-
-            self.impl.start_suite(name=module.module.__name__,
-                                  description=module.module.__doc__ or None)
-            self.testsuite = 'Yes'
-
-        name = '.'.join(mangle_testnames([x.name for x in parent_down_from_module(item)]))
-        self.impl.start_case(name, description=item.function.__doc__, labels=labels_of(item))
-        x = yield
-        # print 'yield>>>>', x.get_result()
-
-        if not nextitem or parent_module(item) != parent_module(nextitem):
-            self.impl.stop_suite()
-            self.testsuite = None
+        # module's nodeid => TestSuite object
+        self.suites = {}
 
     def pytest_sessionfinish(self):
         """
@@ -379,41 +384,25 @@ class AllureAgregatingListener(object):
         Lets write em down.
         """
 
-        suites = {}
+        for s in self.suites.values():
+            if s.tests:  # nobody likes empty suites
+                s.stop = max(case.stop for case in s.tests)
 
-        for module, test in self.testscases:
-            suites.setdefault(module, TestSuite(name=module.module.__name__,
-                                                description=module.module.__doc__ or None,
-                                                tests=[],
-                                                labels=[],
-                                                start=1,
-                                                stop=2)).tests.append(test)
-
-        for s in suites.values():
-            with self.impl._reportfile('%s-testsuite.xml' % uuid.uuid4()) as f:
-                self.impl._write_xml(f, s)
+                with self.impl._reportfile('%s-testsuite.xml' % uuid.uuid4()) as f:
+                    self.impl._write_xml(f, s)
 
         self.impl.store_environment()
 
-    def pytest_sessionstart(self, session):
-        self.session = session  # so we can look stuff up later
-
     def pytest_runtest_logreport(self, report):
         if hasattr(report, '_allure_result'):
-            self.testscases.append(({i.nodeid: parent_module(i) for i in self.session.items}[report.nodeid],
-                                    loads(report._allure_result)))
+            module_id, module_name, module_doc, testcase = pickle.loads(report._allure_result)
 
-        return
-
-    @pytest.mark.hookwrapper
-    def x_pytest_runtest_makereport(self, item, call):
-        """
-        That's the place we inject extra data into the report object from the actual Item.
-        """
-        report = yield
-        report.get_result().__dict__.update(
-            exception=call.excinfo,
-            result=self.config.hook.pytest_report_teststatus(report=report.get_result())[0])  # get the failed/passed/xpassed thingy
+            self.suites.setdefault(module_id, TestSuite(name=module_name,
+                                                        description=module_doc,
+                                                        tests=[],
+                                                        labels=[],
+                                                        start=now(),
+                                                        stop=None)).tests.append(testcase)
 
 
 CollectFail = namedtuple('CollectFail', 'name status message trace')
