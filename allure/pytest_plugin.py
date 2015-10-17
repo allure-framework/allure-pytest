@@ -159,9 +159,12 @@ class AllureTestListener(object):
             trim_msg_len = 89
             short_message = skip_message.split('\n')[0][:trim_msg_len]
 
+            print 'SS>>>', short_message
+            print 'SS>>>', skip_message
+
             # FIXME: see pytest.runner.pytest_runtest_makereport
             self.test.failure = Failure(message=(short_message + '...' * (len(skip_message) > trim_msg_len)),
-                                        trace=status == Status.PENDING and report.longrepr or short_message != skip_message and skip_message or None)
+                                        trace=status == Status.PENDING and report.longrepr or short_message != skip_message and skip_message or '')
 
         parent = parent_module(item)
         # we attach a four-tuple: (test module ID, test module name, test module doc, environment, TestCase)
