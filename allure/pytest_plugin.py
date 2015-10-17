@@ -73,14 +73,18 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     reportdir = config.option.allurereportdir
-    testlistener = AllureTestListener(config)
-    pytest.allure._allurelistener = testlistener
-    config.pluginmanager.register(testlistener)
 
-    if reportdir and not hasattr(config, 'slaveinput'):
-        # on xdist-master node do all the important stuff
-        config.pluginmanager.register(AllureAgregatingListener(reportdir, config))
-        config.pluginmanager.register(AllureCollectionListener(reportdir))
+    if reportdir:  # we actually record something
+        allure_impl = AllureImpl(reportdir)
+
+        testlistener = AllureTestListener(config)
+        pytest.allure._allurelistener = testlistener
+        config.pluginmanager.register(testlistener)
+
+        if not hasattr(config, 'slaveinput'):
+            # on xdist-master node do all the important stuff
+            config.pluginmanager.register(AllureAgregatingListener(allure_impl, config))
+            config.pluginmanager.register(AllureCollectionListener(allure_impl))
 
 
 class AllureTestListener(object):
@@ -413,8 +417,8 @@ class AllureAgregatingListener(object):
     Listens to pytest hooks to generate reports for common tests.
     """
 
-    def __init__(self, logdir, config):
-        self.impl = AllureImpl(logdir)
+    def __init__(self, impl, config):
+        self.impl = impl
 
         # module's nodeid => TestSuite object
         self.suites = {}
@@ -472,8 +476,8 @@ class AllureCollectionListener(object):
     to generate reports for modules that failed to collect.
     """
 
-    def __init__(self, logdir):
-        self.impl = AllureImpl(logdir)
+    def __init__(self, impl):
+        self.impl = impl
         self.fails = []
 
     def pytest_collectreport(self, report):
@@ -488,7 +492,7 @@ class AllureCollectionListener(object):
                                           message=get_exception_message(None, None, report),
                                           trace=report.longrepr))
 
-    def pytest_collection_finish(self):
+    def pytest_sessionfinish(self):
         """
         Creates a testsuite with collection failures if there were any.
         """
