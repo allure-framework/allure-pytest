@@ -86,3 +86,17 @@ def test_attach_in_fixture_teardown(report_for):
     """)
 
     assert_that(report.find('.//attachment').attrib, has_entries(title='Foo'))
+
+
+def test_deep_step_attach_contents(report_for, reportdir):
+    report = report_for("""
+    import pytest
+
+    def test_x():
+        with pytest.allure.step('foo'):
+            with pytest.allure.step('bar'):
+                pytest.allure.attach('ololo', 'pewpew')
+    """)
+    filename = report.find('.//step//attachment').get('source')
+
+    assert_that(reportdir.join(filename).read('rb'), is_('pewpew'))
