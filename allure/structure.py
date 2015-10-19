@@ -39,7 +39,7 @@ class IterAttachmentsMixin(object):
             yield a
 
         for s in self.steps:
-            for a in s.attachments:
+            for a in s.iter_attachments():
                 yield a
 
 
