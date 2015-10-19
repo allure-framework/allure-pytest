@@ -99,4 +99,4 @@ def test_deep_step_attach_contents(report_for, reportdir):
     """)
     filename = report.find('.//step//attachment').get('source')
 
-    assert_that(reportdir.join(filename).read('rb'), is_('pewpew'))
+    assert_that(reportdir.join(filename).read('rb'), is_(b'pewpew'))
