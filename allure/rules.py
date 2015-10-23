@@ -124,6 +124,6 @@ def xmlfied(el_name, namespace='', fields=[], **kw):
             manys = sum([[(m[0], v) for v in m[1]] for m in entries(Many)], [])
 
             return el(*([element for (_, element) in elements + nested + manys]),
-                      **{name: attr for (name, attr) in attributes})
+                      **dict(attributes))
 
     return MyImpl

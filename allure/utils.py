@@ -118,7 +118,7 @@ def unicodify(something):
     if isinstance(something, text_type):
         return something
     elif isinstance(something, binary_type):
-        return something.decode('utf-8', errors='replace')
+        return something.decode('utf-8', 'replace')
     else:
         try:
             return text_type(something)  # @UndefinedVariable
