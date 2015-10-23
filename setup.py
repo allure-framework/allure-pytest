@@ -3,7 +3,7 @@ from setuptools import setup
 
 
 PACKAGE = "pytest-allure-adaptor"
-VERSION = "1.6.7"
+VERSION = "1.6.8"
 
 
 def read(fname):
