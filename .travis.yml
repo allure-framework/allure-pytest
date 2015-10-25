@@ -5,6 +5,7 @@ python:
   - '3.3'
   - '3.4'
   - '3.5'
+sudo: false
 env:
   - TOX_ENV=py
   - TOX_ENV=static_check
