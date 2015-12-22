@@ -176,7 +176,7 @@ class AllureImpl(object):
             test.failure = Failure(message=message, trace=trace or '')
 
         self.testsuite.tests.append(test)
-
+        self.test_case = None
         return test
 
     def start_suite(self, name, description=None, title=None, labels=None):
