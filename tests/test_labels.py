@@ -204,7 +204,8 @@ def test_issues(report_for):
     import allure
 
     @allure.issue('Issue1')
-    def test_a(self):
+    def test_a():
+        allure.issue('Issue11', 'Issue12')
         pass
 
     @allure.issue('Issue2')
@@ -212,6 +213,7 @@ def test_issues(report_for):
 
         @allure.issue('Issue3')
         def test_b(self):
+            allure.issue('Issue31', 'Issue32')
             pass
 
         def test_c(self):
@@ -220,9 +222,14 @@ def test_issues(report_for):
 
     assert_that(report, all_of(
         has_label('test_a', 'issue', 'Issue1'),
+        has_label('test_a', 'issue', 'Issue11'),
+        has_label('test_a', 'issue', 'Issue12'),
         has_label('TestMy.test_b', 'issue', 'Issue2'),
         has_label('TestMy.test_b', 'issue', 'Issue3'),
-        has_label('TestMy.test_c', 'issue', 'Issue2')))
+        has_label('TestMy.test_b', 'issue', 'Issue31'),
+        has_label('TestMy.test_b', 'issue', 'Issue32'),
+        has_label('TestMy.test_c', 'issue', 'Issue2')
+        ))
 
 
 def test_testcases(report_for):
@@ -233,7 +240,7 @@ def test_testcases(report_for):
     import allure
 
     @allure.testcase('http://my.bugtracker.com/TESTCASE-1')
-    def test_a(self):
+    def test_a():
         pass
 
     @allure.testcase('http://my.bugtracker.com/TESTCASE-2')

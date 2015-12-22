@@ -17,9 +17,9 @@ from _pytest.skipping import XFailed
 from lxml import etree
 import py
 
-from allure.constants import AttachmentType, Status
-from allure.structure import Attach, TestStep, TestCase, TestSuite, Failure, Environment, EnvParameter
-from allure.utils import now
+from allure.constants import AttachmentType, Status, Label
+from allure.structure import Attach, TestStep, TestCase, TestSuite, Failure, Environment, EnvParameter, TestLabel
+from allure.utils import now, LabelsList
 
 
 class StepContext:
@@ -103,6 +103,7 @@ class AllureImpl(object):
         # Attaches and steps go to the object at top of the stack.
         self.stack = []
 
+        self.test_case = None
         self.testsuite = None
         self.environment = {}
 
@@ -114,6 +115,14 @@ class AllureImpl(object):
                         title=title,
                         type=attach_type.mime_type)
         self.stack[-1].attachments.append(attach)
+
+    def issue(self, *issues):
+        """
+        Attaches ``issues`` to the current active case
+        """
+        issues  = LabelsList([TestLabel(Label.ISSUE, issue) for issue in issues])
+        if self.test_case:
+            self.test_case.labels.extend(issues)
 
     def start_step(self, name):
         """
@@ -146,6 +155,7 @@ class AllureImpl(object):
                         attachments=[],
                         labels=labels or [],
                         steps=[])
+        self.test_case = test
         self.stack.append(test)
 
     def stop_case(self, status, message=None, trace=None):

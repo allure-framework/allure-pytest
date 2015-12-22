@@ -152,6 +152,8 @@ class AllureHelper(object):
         """
         A decorator factory that returns ``pytest.mark`` for a given issues.
         """
+        if self._allurelistener:
+            self._allurelistener.issue(*issues)
         return self.label(Label.ISSUE, *issues)
 
     def testcase(self, *testcases):
@@ -254,6 +256,7 @@ class AllureTestListener(object):
 
         # FIXME: maybe we should write explicit wrappers?
         self.attach = self.impl.attach
+        self.issue = self.impl.issue
         self.start_step = self.impl.start_step
         self.stop_step = self.impl.stop_step
 
