@@ -81,7 +81,7 @@ class AllureImpl(object):
       allure.start_case('test_two')
       allure.start_step('a demo step')
       allure.attach('some file', 'a quick brown fox..', AttachmentType.TEXT)
-      allure.issue(some issue links...)
+      allure.dynamic_issue(some issue links...)
       allure.stop_step()
       allure.stop_case(Status.FAILED, 'failed for demo', 'stack trace goes here')
       allure.stop_suite()  # this writes XML into ./reports
@@ -117,7 +117,7 @@ class AllureImpl(object):
                         type=attach_type.mime_type)
         self.stack[-1].attachments.append(attach)
 
-    def issue(self, *issues):
+    def dynamic_issue(self, *issues):
         """
         Attaches ``issues`` to the current active case
         """
