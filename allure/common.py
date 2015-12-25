@@ -121,7 +121,7 @@ class AllureImpl(object):
         """
         Attaches ``issues`` to the current active case
         """
-        issues = LabelsList([TestLabel(Label.ISSUE, issue) for issue in issues])
+        issues = LabelsList([TestLabel(name=Label.ISSUE, value=issue) for issue in issues])
         if self.test_case:
             self.test_case.labels.extend(issues)
 
