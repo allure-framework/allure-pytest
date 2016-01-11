@@ -38,7 +38,7 @@ def pytest_addoption(parser):
             if legal_values and not atoms < legal_values:
                 raise argparse.ArgumentTypeError('Illegal {} values: {}, only [{}] are allowed'.format(name, ', '.join(atoms - legal_values), ', '.join(legal_values)))
 
-            return {(name, v) for v in atoms}
+            return set((name, v) for v in atoms)
 
         return a_label_type
 
@@ -256,7 +256,7 @@ class AllureTestListener(object):
 
 
 def pytest_runtest_setup(item):
-    item_labels = {(l.name, l.value) for l in labels_of(item)}  # see label_type
+    item_labels = set((l.name, l.value) for l in labels_of(item))  # see label_type
 
     arg_labels = set().union(item.config.option.allurefeatures,
                              item.config.option.allurestories,
