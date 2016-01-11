@@ -1,9 +1,19 @@
 import os
+import sys
 from setuptools import setup
 
-
 PACKAGE = "pytest-allure-adaptor"
-VERSION = "1.6.7"
+VERSION = "1.6.8"
+
+install_requires = [
+    "lxml>=3.2.0",
+    "pytest>=2.7.3",
+    "namedlist",
+    "six>=1.9.0"
+]
+
+if sys.version_info < (3, 4):
+    install_requires.append("enum34")
 
 
 def read(fname):
@@ -21,13 +31,9 @@ def main():
         url="https://github.com/allure-framework/allure-python",
         long_description=read('README.rst'),
         entry_points={'pytest11': ['allure_adaptor = allure.pytest_plugin']},
-        install_requires=[
-            "lxml>=3.2.0",
-            "pytest>=2.7.0",
-            "namedlist",
-            "six>=1.9.0",
-            "enum34"]
+        install_requires=install_requires
     )
+
 
 if __name__ == '__main__':
     main()
