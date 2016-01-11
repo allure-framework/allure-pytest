@@ -254,6 +254,9 @@ def test_testcases(report_for):
         has_label('TestMy.test_c', 'testId', 'http://my.bugtracker.com/TESTCASE-2')))
 
 
+# only run local reports -- this test makes no sense for xdisted ones
+# see `reports_for` docstring
+@pytest.mark.parametrize('reports_for', ['local'], indirect=True)
 def test_environ_labels(report_for):
     report = report_for("""
     import pytest
