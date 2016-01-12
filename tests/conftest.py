@@ -24,17 +24,27 @@ def reportdir(testdir):
     return testdir.tmpdir.join("my_report_dir")
 
 
-@pytest.fixture
-def reports_for(testdir, reportdir, schema):
+@pytest.fixture(params=['local', 'xdist-parallel'])
+def reports_for(request, testdir, reportdir, schema):
     """
     Fixture that takes a map of name-values, runs it with --alluredir,
     parses all the XML, validates them against ``schema`` and
     :returns list of :py:module:`lxml.objectify`-parsed reports
+
+    Parametrized by mode of execution:
+      `local` is py.test's default mode
+      `xdist-parallel` is via xdist's -n multi-process feature
+
+    Results are expected to be identical.
+
+    TODO: add `xdist-remote` mode
     """
     def impl(body='', extra_run_args=[], **kw):
         testdir.makepyfile(body, **kw)
 
         resultpath = str(reportdir)
+        if request.param == 'xdist-parallel':
+            extra_run_args += ['-n', '1']
         testdir.inline_run("--alluredir", resultpath, *extra_run_args)
 
         files = [os.path.join(resultpath, f) for f in os.listdir(resultpath) if '-testsuite.xml' in f]

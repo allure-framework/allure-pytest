@@ -1,16 +1,18 @@
-import argparse
-from collections import namedtuple
-
-from _pytest.junitxml import mangle_testnames
+import uuid
+import pickle
 import pytest
+import argparse
+
+from collections import namedtuple
+from _pytest.junitxml import mangle_testnames
+from six import text_type
 
 from allure.common import AllureImpl, StepContext
-from allure.utils import LabelsList
 from allure.constants import Status, AttachmentType, Severity, \
     FAILED_STATUSES, Label, SKIPPED_STATUSES
 from allure.utils import parent_module, parent_down_from_module, labels_of, \
-    all_of, get_exception_message
-from allure.structure import TestLabel
+    all_of, get_exception_message, now
+from allure.structure import TestCase, TestStep, Attach, TestSuite, Failure
 
 
 def pytest_addoption(parser):
@@ -23,27 +25,29 @@ def pytest_addoption(parser):
 
     severities = [v for (_, v) in all_of(Severity)]
 
-    def severity_label_type(string):
-        entries = LabelsList([TestLabel(name=Label.SEVERITY, value=x) for x in string.split(',')])
+    def label_type(name, legal_values=set()):
+        """
+        argparse-type factory for labelish things.
+        processed value is set of tuples (name, value).
+        :param name: of label type (for future TestLabel things)
+        :param legal_values: a `set` of values that are legal for this label, if any limit whatsoever
+        :raises ArgumentTypeError: if `legal_values` are given and there are values that fall out of that
+        """
+        def a_label_type(string):
+            atoms = set(string.split(','))
+            if legal_values and not atoms < legal_values:
+                raise argparse.ArgumentTypeError('Illegal {} values: {}, only [{}] are allowed'.format(name, ', '.join(atoms - legal_values), ', '.join(legal_values)))
 
-        for entry in entries:
-            if entry.value not in severities:
-                raise argparse.ArgumentTypeError('Illegal severity value [%s], only values from [%s] are allowed.' % (entry.value, ', '.join(severities)))
+            return set((name, v) for v in atoms)
 
-        return entries
-
-    def features_label_type(string):
-        return LabelsList([TestLabel(name=Label.FEATURE, value=x) for x in string.split(',')])
-
-    def stories_label_type(string):
-        return LabelsList([TestLabel(name=Label.STORY, value=x) for x in string.split(',')])
+        return a_label_type
 
     parser.getgroup("general").addoption('--allure_severities',
                                          action="store",
                                          dest="allureseverities",
-                                         metavar="SEVERITIES_LIST",
-                                         default=LabelsList(),
-                                         type=severity_label_type,
+                                         metavar="SEVERITIES_SET",
+                                         default={},
+                                         type=label_type(name=Label.SEVERITY, legal_values=set(severities)),
                                          help="""Comma-separated list of severity names.
                                          Tests only with these severities will be run.
                                          Possible values are:%s.""" % ', '.join(severities))
@@ -51,39 +55,215 @@ def pytest_addoption(parser):
     parser.getgroup("general").addoption('--allure_features',
                                          action="store",
                                          dest="allurefeatures",
-                                         metavar="FEATURES_LIST",
-                                         default=LabelsList(),
-                                         type=features_label_type,
+                                         metavar="FEATURES_SET",
+                                         default={},
+                                         type=label_type(name=Label.FEATURE),
                                          help="""Comma-separated list of feature names.
                                          Run tests that have at least one of the specified feature labels.""")
 
     parser.getgroup("general").addoption('--allure_stories',
                                          action="store",
                                          dest="allurestories",
-                                         metavar="STORIES_LIST",
-                                         default=LabelsList(),
-                                         type=stories_label_type,
+                                         metavar="STORIES_SET",
+                                         default={},
+                                         type=label_type(name=Label.STORY),
                                          help="""Comma-separated list of story names.
                                          Run tests that have at least one of the specified story labels.""")
 
 
 def pytest_configure(config):
     reportdir = config.option.allurereportdir
-    if reportdir and not hasattr(config, 'slaveinput'):
-        config._allurelistener = AllureTestListener(reportdir, config)
-        config.pluginmanager.register(config._allurelistener)
-        config.pluginmanager.register(AllureCollectionListener(reportdir))
-        pytest.allure._allurelistener = config._allurelistener  # FIXME: maybe we need a different injection mechanism
+
+    if reportdir:  # we actually record something
+        allure_impl = AllureImpl(reportdir)
+
+        testlistener = AllureTestListener(config)
+        pytest.allure._allurelistener = testlistener
+        config.pluginmanager.register(testlistener)
+
+        if not hasattr(config, 'slaveinput'):
+            # on xdist-master node do all the important stuff
+            config.pluginmanager.register(AllureAgregatingListener(allure_impl, config))
+            config.pluginmanager.register(AllureCollectionListener(allure_impl))
+
+
+class AllureTestListener(object):
+    """
+    Per-test listener.
+    Is responsible for recording in-test data and for attaching it to the test report thing.
+
+    The per-test reports are handled by `AllureAgregatingListener` at the `pytest_runtest_logreport` hook.
+    """
+
+    def __init__(self, config):
+        self.config = config
+        self.environment = {}
+
+        # FIXME: that flag makes us pre-report failures in the makereport hook.
+        # it is here to cope with xdist's begavior regarding -x.
+        # see self.pytest_runtest_makereport and AllureAgregatingListener.pytest_sessionfinish
+
+        self._magicaldoublereport = hasattr(self.config, 'slaveinput') and self.config.getvalue("maxfail")
+
+    @pytest.mark.hookwrapper
+    def pytest_runtest_protocol(self, item, nextitem):
+        self.test = TestCase(name='.'.join(mangle_testnames([x.name for x in parent_down_from_module(item)])),
+                             description=item.function.__doc__,
+                             start=now(),
+                             attachments=[],
+                             labels=labels_of(item),
+                             status=None,
+                             steps=[],
+                             id=str(uuid.uuid4()))  # for later resolution in AllureAgregatingListener.pytest_sessionfinish
+
+        self.stack = [self.test]
+
+        yield
+
+        self.test = None
+        self.stack = []
+
+    def attach(self, title, contents, attach_type):
+        """
+        Store attachment object in current state for later actual write in the `AllureAgregatingListener.write_attach`
+        """
+        attach = Attach(source=contents,  # we later re-save those, oh my...
+                        title=title,
+                        type=attach_type)
+        self.stack[-1].attachments.append(attach)
+
+    def start_step(self, name):
+        """
+        Starts an new :py:class:`allure.structure.TestStep` with given ``name``,
+        pushes it to the ``self.stack`` and returns the step.
+        """
+        step = TestStep(name=name,
+                        title=name,
+                        start=now(),
+                        attachments=[],
+                        steps=[])
+        self.stack[-1].steps.append(step)
+        self.stack.append(step)
+        return step
+
+    def stop_step(self):
+        """
+        Stops the step at the top of ``self.stack``
+        """
+        step = self.stack.pop()
+        step.stop = now()
+
+    def _fill_case(self, report, call, pyteststatus, status):
+        """
+        Finalizes with important data
+        :param report: py.test's `TestReport`
+        :param call: py.test's `CallInfo`
+        :param pyteststatus: the failed/xfailed/xpassed thing
+        :param status: a :py:class:`allure.constants.Status` entry
+        """
+        [self.attach(name, contents, AttachmentType.TEXT) for (name, contents) in dict(report.sections).items()]
+
+        self.test.stop = now()
+        self.test.status = status
+
+        if status in FAILED_STATUSES:
+            self.test.failure = Failure(message=get_exception_message(call.excinfo, pyteststatus, report),
+                                        trace=report.longrepr or hasattr(report, 'wasxfail') and report.wasxfail)
+        elif status in SKIPPED_STATUSES:
+            skip_message = type(report.longrepr) == tuple and report.longrepr[2] or report.wasxfail
+            trim_msg_len = 89
+            short_message = skip_message.split('\n')[0][:trim_msg_len]
+
+            # FIXME: see pytest.runner.pytest_runtest_makereport
+            self.test.failure = Failure(message=(short_message + '...' * (len(skip_message) > trim_msg_len)),
+                                        trace=status == Status.PENDING and report.longrepr or short_message != skip_message and skip_message or '')
+
+    def report_case(self, item, report):
+        """
+        Adds `self.test` to the `report` in a `AllureAggegatingListener`-understood way
+        """
+        parent = parent_module(item)
+        # we attach a four-tuple: (test module ID, test module name, test module doc, environment, TestCase)
+        report.__dict__.update(_allure_result=pickle.dumps((parent.nodeid,
+                                                            parent.module.__name__,
+                                                            parent.module.__doc__ or '',
+                                                            self.environment,
+                                                            self.test)))
+
+    @pytest.mark.hookwrapper
+    def pytest_runtest_makereport(self, item, call):
+        """
+        Decides when to actually report things.
+
+        pytest runs this (naturally) three times -- with report.when being:
+          setup     <--- fixtures are to be initialized in this one
+          call      <--- when this finishes the main code has finished
+          teardown  <--- tears down fixtures (that still possess important info)
+
+        `setup` and `teardown` are always called, but `call` is called only if `setup` passes.
+
+        See :py:func:`_pytest.runner.runtestprotocol` for proofs / ideas.
+
+        The "other side" (AllureAggregatingListener) expects us to send EXACTLY ONE test report (it wont break, but it will duplicate cases in the report -- which is bad.
+
+        So we work hard to decide exact moment when we call `_stop_case` to do that. This method may benefit from FSM (we keep track of what has already happened via self.test.status)
+
+        Expected behavior is:
+          FAILED when call fails and others OK
+          BROKEN when either setup OR teardown are broken (and call may be anything)
+          PENDING if skipped and xfailed
+          SKIPPED if skipped and not xfailed
+        """
+        report = (yield).get_result()
+
+        status = self.config.hook.pytest_report_teststatus(report=report)
+        status = status and status[0]
+
+        if report.when == 'call':
+            if report.passed:
+                self._fill_case(report, call, status, Status.PASSED)
+            elif report.failed:
+                self._fill_case(report, call, status, Status.FAILED)
+                # FIXME: this is here only to work around xdist's stupid -x thing when in exits BEFORE THE TEARDOWN test log. Meh, i should file an issue to xdist
+                if self._magicaldoublereport:
+                    # to minimize ze impact
+                    self.report_case(item, report)
+            elif report.skipped:
+                if hasattr(report, 'wasxfail'):
+                    self._fill_case(report, call, status, Status.PENDING)
+                else:
+                    self._fill_case(report, call, status, Status.CANCELED)
+        elif report.when == 'setup':  # setup / teardown
+            if report.failed:
+                self._fill_case(report, call, status, Status.BROKEN)
+            elif report.skipped:
+                if hasattr(report, 'wasxfail'):
+                    self._fill_case(report, call, status, Status.PENDING)
+                else:
+                    self._fill_case(report, call, status, Status.CANCELED)
+        elif report.when == 'teardown':
+            # as teardown is always called for testitem -- report our status here
+            if not report.passed:
+                if self.test.status not in FAILED_STATUSES:
+                    # if test was OK but failed at teardown => broken
+                    self._fill_case(report, call, status, Status.BROKEN)
+                else:
+                    # mark it broken so, well, someone has idea of teardown failure
+                    # still, that's no big deal -- test has already failed
+                    # TODO: think about that once again
+                    self.test.status = Status.BROKEN
+            self.report_case(item, report)
 
 
 def pytest_runtest_setup(item):
-    item_labels = labels_of(item)
+    item_labels = set((l.name, l.value) for l in labels_of(item))  # see label_type
 
-    option = item.config.option
-    arg_labels = option.allurefeatures + option.allurestories + option.allureseverities
+    arg_labels = set().union(item.config.option.allurefeatures,
+                             item.config.option.allurestories,
+                             item.config.option.allureseverities)
 
     if arg_labels and not item_labels & arg_labels:
-        pytest.skip('Not suitable with selected labels: %s.' % arg_labels)
+        pytest.skip('Not suitable with selected labels: %s.' % ', '.join(text_type(l) for l in sorted(arg_labels)))
 
 
 class LazyInitStepContext(StepContext):
@@ -213,7 +393,7 @@ class AllureHelper(object):
 
     def environment(self, **env_dict):
         if self._allurelistener:
-            self._allurelistener.impl.environment.update(env_dict)
+            self._allurelistener.environment.update(env_dict)
 
     @property
     def attach_type(self):
@@ -244,93 +424,76 @@ def pytest_namespace():
     return {'allure': MASTER_HELPER}
 
 
-class AllureTestListener(object):
+class AllureAgregatingListener(object):
 
     """
     Listens to pytest hooks to generate reports for common tests.
     """
 
-    def __init__(self, logdir, config):
-        self.impl = AllureImpl(logdir)
-        self.config = config
+    def __init__(self, impl, config):
+        self.impl = impl
 
-        # FIXME: maybe we should write explicit wrappers?
-        self.attach = self.impl.attach
-        self.dynamic_issue = self.impl.dynamic_issue
-        self.start_step = self.impl.start_step
-        self.stop_step = self.impl.stop_step
-
-        self.testsuite = None
-
-    def _stop_case(self, report, status=None):
-        """
-        Finalizes with important data the test at the top of ``self.stack`` and returns it
-        """
-        [self.attach(name, contents, AttachmentType.TEXT) for (name, contents) in dict(report.sections).items()]
-
-        if status in FAILED_STATUSES:
-            self.impl.stop_case(status,
-                                message=get_exception_message(report),
-                                trace=report.longrepr or report.wasxfail)
-        elif status in SKIPPED_STATUSES:
-            skip_message = type(report.longrepr) == tuple and report.longrepr[2] or report.wasxfail
-            trim_msg_len = 89
-            short_message = skip_message.split('\n')[0][:trim_msg_len]
-
-            # FIXME: see pytest.runner.pytest_runtest_makereport
-            self.impl.stop_case(status,
-                                message=(short_message + '...' * (len(skip_message) > trim_msg_len)),
-                                trace=status == Status.PENDING and report.longrepr or short_message != skip_message and skip_message or None)
-        else:
-            self.impl.stop_case(status)
-
-    @pytest.mark.hookwrapper
-    def pytest_runtest_protocol(self, item, nextitem):
-        if not self.testsuite:
-            module = parent_module(item)
-
-            self.impl.start_suite(name=module.module.__name__,
-                                  description=module.module.__doc__ or None)
-            self.testsuite = 'Yes'
-
-        name = '.'.join(mangle_testnames([x.name for x in parent_down_from_module(item)]))
-        self.impl.start_case(name, description=item.function.__doc__, labels=labels_of(item))
-        yield
-
-        if not nextitem or parent_module(item) != parent_module(nextitem):
-            self.impl.stop_suite()
-            self.testsuite = None
-
-    def pytest_runtest_logreport(self, report):
-        if report.passed:
-            if report.when == "call":  # ignore setup/teardown
-                self._stop_case(report, status=Status.PASSED)
-        elif report.failed:
-            if report.when != "call":
-                self._stop_case(report, status=Status.BROKEN)
-            else:
-                self._stop_case(report, status=Status.FAILED)
-        elif report.skipped:
-            if hasattr(report, 'wasxfail'):
-                self._stop_case(report, status=Status.PENDING)
-            else:
-                self._stop_case(report, status=Status.CANCELED)
-
-    @pytest.mark.hookwrapper
-    def pytest_runtest_makereport(self, item, call):
-        """
-        That's the place we inject extra data into the report object from the actual Item.
-        """
-        report = yield
-        report.get_result().__dict__.update(
-            exception=call.excinfo,
-            result=self.config.hook.pytest_report_teststatus(report=report.get_result())[0])  # get the failed/passed/xpassed thingy
+        # module's nodeid => TestSuite object
+        self.suites = {}
 
     def pytest_sessionfinish(self):
-        if self.testsuite:
-            self.impl.stop_suite()
-            self.testsuite = None
+        """
+        We are done and have all the results in `self.suites`
+        Lets write em down.
+
+        But first we kinda-unify the test cases.
+
+        We expect cases to come from AllureTestListener -- and the have ._id field to manifest their identity.
+
+        Of all the test cases in suite.testcases we leave LAST with the same ID -- becase logreport can be sent MORE THAN ONE TIME
+        (namely, if the test fails and then gets broken -- to cope with the xdist's -x behavior we have to have tests even at CALL failures)
+
+        TODO: do it in a better, more efficient way
+        """
+
+        for s in self.suites.values():
+            if s.tests:  # nobody likes empty suites
+                s.stop = max(case.stop for case in s.tests)
+
+                known_ids = set()
+                refined_tests = []
+                for t in s.tests[::-1]:
+                    if t.id not in known_ids:
+                        known_ids.add(t.id)
+                        refined_tests.append(t)
+                s.tests[::-1] = refined_tests
+
+                with self.impl._reportfile('%s-testsuite.xml' % uuid.uuid4()) as f:
+                    self.impl._write_xml(f, s)
+
         self.impl.store_environment()
+
+    def write_attach(self, attachment):
+        """
+        Writes attachment object from the `AllureTestListener` to the FS, fixing it fields
+
+        :param attachment: a :py:class:`allure.structure.Attach` object
+        """
+
+        # OMG, that is bad
+        attachment.source = self.impl._save_attach(attachment.source, attachment.type)
+        attachment.type = attachment.type.mime_type
+
+    def pytest_runtest_logreport(self, report):
+        if hasattr(report, '_allure_result'):
+            module_id, module_name, module_doc, environment, testcase = pickle.loads(report._allure_result)
+
+            self.impl.environment.update(environment)
+
+            for a in testcase.iter_attachments():
+                self.write_attach(a)
+
+            self.suites.setdefault(module_id, TestSuite(name=module_name,
+                                                        description=module_doc,
+                                                        tests=[],
+                                                        labels=[],
+                                                        start=testcase.start,  # first case starts the suite!
+                                                        stop=None)).tests.append(testcase)
 
 
 CollectFail = namedtuple('CollectFail', 'name status message trace')
@@ -343,8 +506,8 @@ class AllureCollectionListener(object):
     to generate reports for modules that failed to collect.
     """
 
-    def __init__(self, logdir):
-        self.impl = AllureImpl(logdir)
+    def __init__(self, impl):
+        self.impl = impl
         self.fails = []
 
     def pytest_collectreport(self, report):
@@ -356,10 +519,10 @@ class AllureCollectionListener(object):
 
             self.fails.append(CollectFail(name=mangle_testnames(report.nodeid.split("::"))[-1],
                                           status=status,
-                                          message=get_exception_message(report),
+                                          message=get_exception_message(None, None, report),
                                           trace=report.longrepr))
 
-    def pytest_collection_finish(self):
+    def pytest_sessionfinish(self):
         """
         Creates a testsuite with collection failures if there were any.
         """
