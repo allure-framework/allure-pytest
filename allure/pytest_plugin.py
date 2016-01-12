@@ -12,7 +12,7 @@ from allure.constants import Status, AttachmentType, Severity, \
     FAILED_STATUSES, Label, SKIPPED_STATUSES
 from allure.utils import parent_module, parent_down_from_module, labels_of, \
     all_of, get_exception_message, now
-from allure.structure import TestCase, TestStep, Attach, TestSuite, Failure
+from allure.structure import TestCase, TestStep, Attach, TestSuite, Failure, TestLabel
 
 
 def pytest_addoption(parser):
@@ -98,6 +98,7 @@ class AllureTestListener(object):
     def __init__(self, config):
         self.config = config
         self.environment = {}
+        self.test = None
 
         # FIXME: that flag makes us pre-report failures in the makereport hook.
         # it is here to cope with xdist's begavior regarding -x.
@@ -131,6 +132,14 @@ class AllureTestListener(object):
                         title=title,
                         type=attach_type)
         self.stack[-1].attachments.append(attach)
+
+    def dynamic_issue(self, *issues):
+        """
+        Attaches ``issues`` to the current active case
+        """
+        issues = [TestLabel(name=Label.ISSUE, value=issue) for issue in issues]
+        if self.test:
+            self.test.labels.extend(issues)
 
     def start_step(self, name):
         """

@@ -17,9 +17,9 @@ from _pytest.skipping import XFailed
 from lxml import etree
 import py
 
-from allure.constants import AttachmentType, Status, Label
-from allure.structure import Attach, TestStep, TestCase, TestSuite, Failure, Environment, EnvParameter, TestLabel
-from allure.utils import now, LabelsList
+from allure.constants import AttachmentType, Status
+from allure.structure import Attach, TestStep, TestCase, TestSuite, Failure, Environment, EnvParameter
+from allure.utils import now
 
 
 class StepContext:
@@ -81,7 +81,6 @@ class AllureImpl(object):
       allure.start_case('test_two')
       allure.start_step('a demo step')
       allure.attach('some file', 'a quick brown fox..', AttachmentType.TEXT)
-      allure.dynamic_issue(some issue links...)
       allure.stop_step()
       allure.stop_case(Status.FAILED, 'failed for demo', 'stack trace goes here')
       allure.stop_suite()  # this writes XML into ./reports
@@ -104,7 +103,6 @@ class AllureImpl(object):
         # Attaches and steps go to the object at top of the stack.
         self.stack = []
 
-        self.test_case = None
         self.testsuite = None
         self.environment = {}
 
@@ -116,14 +114,6 @@ class AllureImpl(object):
                         title=title,
                         type=attach_type.mime_type)
         self.stack[-1].attachments.append(attach)
-
-    def dynamic_issue(self, *issues):
-        """
-        Attaches ``issues`` to the current active case
-        """
-        issues = LabelsList([TestLabel(name=Label.ISSUE, value=issue) for issue in issues])
-        if self.test_case:
-            self.test_case.labels.extend(issues)
 
     def start_step(self, name):
         """
@@ -156,7 +146,6 @@ class AllureImpl(object):
                         attachments=[],
                         labels=labels or [],
                         steps=[])
-        self.test_case = test
         self.stack.append(test)
 
     def stop_case(self, status, message=None, trace=None):
@@ -177,7 +166,6 @@ class AllureImpl(object):
             test.failure = Failure(message=message, trace=trace or '')
 
         self.testsuite.tests.append(test)
-        self.test_case = None
         return test
 
     def start_suite(self, name, description=None, title=None, labels=None):
