@@ -137,8 +137,8 @@ class AllureTestListener(object):
         """
         Attaches ``issues`` to the current active case
         """
-        issues = [TestLabel(name=Label.ISSUE, value=issue) for issue in issues]
         if self.test:
+            issues = [TestLabel(name=Label.ISSUE, value=issue) for issue in issues]
             self.test.labels.extend(issues)
 
     def start_step(self, name):
