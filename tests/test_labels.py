@@ -205,7 +205,7 @@ def test_issues(report_for):
 
     @allure.issue('Issue1')
     def test_a():
-        allure.issue('Issue11', 'Issue12')
+        allure.dynamic_issue('Issue11', 'Issue12')
         pass
 
     @allure.issue('Issue2')
@@ -213,7 +213,7 @@ def test_issues(report_for):
 
         @allure.issue('Issue3')
         def test_b(self):
-            allure.issue('Issue31', 'Issue32')
+            allure.dynamic_issue('Issue31', 'Issue32')
             pass
 
         def test_c(self):

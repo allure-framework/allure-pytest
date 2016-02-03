@@ -11,6 +11,7 @@ __methods_to_provide = [
     'story',
     'severity',
     'issue',
+    'dynamic_issue',
     'testcase',
     'environment',
     'attach_type',

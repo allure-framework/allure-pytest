@@ -340,9 +340,14 @@ class AllureHelper(object):
         """
         A decorator factory that returns ``pytest.mark`` for a given issues.
         """
+        return self.label(Label.ISSUE, *issues)
+
+    def dynamic_issue(self, *issues):
+        """
+        Mark test ``issues`` from inside.
+        """
         if self._allurelistener:
             self._allurelistener.dynamic_issue(*issues)
-        return self.label(Label.ISSUE, *issues)
 
     def testcase(self, *testcases):
         """
