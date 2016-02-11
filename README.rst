@@ -172,9 +172,11 @@ Issues can be set for test.
  @allure.issue('http://jira.lan/browse/ISSUE-2')
  class TestBar:
 
-     # test will have ISSUE-2 and ISSUE-3 label
+     # test will have ISSUE-2, ISSUE-3 and ISSUE-4 label
      @allure.issue('http://jira.lan/browse/ISSUE-3')
      def test_bar1(self):
+         # You can use this feature like a function inside the test
+         allure.dynamic_issue('http://jira.lan/browse/ISSUE-4')
          pass
 
      # test will have only ISSUE-2 label
