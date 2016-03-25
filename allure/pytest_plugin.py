@@ -108,8 +108,14 @@ class AllureTestListener(object):
 
     @pytest.mark.hookwrapper
     def pytest_runtest_protocol(self, item, nextitem):
+        try:
+            # for common items
+            description = item.function.__doc__
+        except AttributeError:
+            # for doctests that has no `function` attribute
+            description = item.reportinfo()[2]
         self.test = TestCase(name='.'.join(mangle_testnames([x.name for x in parent_down_from_module(item)])),
-                             description=item.function.__doc__,
+                             description=description,
                              start=now(),
                              attachments=[],
                              labels=labels_of(item),
