@@ -7,7 +7,7 @@ VERSION = "1.7.1"
 
 install_requires = [
     "lxml>=3.2.0",
-    "pytest>=2.7.3",
+    "pytest>=2.7.3, <=2.9.0",
     "namedlist",
     "six>=1.9.0"
 ]
