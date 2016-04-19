@@ -19,3 +19,4 @@ build
 /.tox
 /pytest_allure_adaptor.egg-info
 /.coverage
+.cache
