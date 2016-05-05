@@ -39,6 +39,8 @@ def mem_usage(reports_for):
 
 def test_attach_memory_consumption(mem_usage):
     """
+    Test for issue https://github.com/allure-framework/allure-python/issues/98
+
     Check that attachments do not consume too much memory of py.test process.
 
     Run lots of tests with big attachments and observe that memory usage rises well below total volume of all attachments.
