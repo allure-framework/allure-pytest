@@ -111,7 +111,7 @@ class WrappedMany(Many):
 
 
 def xmlfied(el_name, namespace='', fields=[], **kw):
-    items = fields + list(kw.items())
+    items = fields + sorted(kw.items())
 
     class MyImpl(namedlist('XMLFied', [(item[0], None) for item in items])):
 
