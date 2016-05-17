@@ -502,6 +502,8 @@ class AllureAgregatingListener(object):
         if hasattr(report, '_allure_result'):
             module_id, module_name, module_doc, environment, testcase = pickle.loads(report._allure_result)
 
+            report._allure_result = None  # so actual pickled data is garbage-collected, see https://github.com/allure-framework/allure-python/issues/98
+
             self.impl.environment.update(environment)
 
             for a in testcase.iter_attachments():
