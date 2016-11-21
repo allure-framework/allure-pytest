@@ -436,6 +436,7 @@ class AllureHelper(object):
         else:
             raise AttributeError
 
+
 MASTER_HELPER = AllureHelper()
 
 
