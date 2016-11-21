@@ -436,6 +436,7 @@ class AllureHelper(object):
         else:
             raise AttributeError
 
+
 MASTER_HELPER = AllureHelper()
 
 
@@ -480,7 +481,7 @@ class AllureAgregatingListener(object):
                     if t.id not in known_ids:
                         known_ids.add(t.id)
                         refined_tests.append(t)
-                s.tests[::-1] = refined_tests
+                s.tests = refined_tests[::-1]
 
                 with self.impl._reportfile('%s-testsuite.xml' % uuid.uuid4()) as f:
                     self.impl._write_xml(f, s)
