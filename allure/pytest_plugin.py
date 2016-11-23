@@ -266,6 +266,7 @@ class AllureTestListener(object):
                     # still, that's no big deal -- test has already failed
                     # TODO: think about that once again
                     self.test.status = Status.BROKEN
+            # if a test isn't marked as "unreported" or it has failed, add it to the report.
             if not item.get_marker("unreported") or self.test.status in FAILED_STATUSES:
                 self.report_case(item, report)
 
