@@ -82,13 +82,13 @@ def test_xpass(report_for):
     report = report_for("""
     import pytest
 
-    @pytest.mark.xfail(reason='ololo')
+    @pytest.mark.xfail(strict=True, reason='ololo')
     def test_Y():
         assert True
     """)
 
-    assert_that(report, has_error(message='xpassed',
-                                  trace='ololo'))
+    assert_that(report, has_error(message='Failed: [XPASS(strict)] ololo',
+                                  trace='[XPASS(strict)] ololo'))
 
 
 def test_xfail(report_for):
