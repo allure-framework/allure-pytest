@@ -105,12 +105,14 @@ def all_of(enum):
     """
     returns list of name-value pairs for ``enum`` from :py:mod:`allure.constants`
     """
+
     def clear_pairs(pair):
         if pair[0].startswith('_'):
             return False
         if pair[0] in ('name', 'value'):
             return False
         return True
+
     return filter(clear_pairs, inspect.getmembers(enum))
 
 
@@ -160,3 +162,9 @@ def host_tag():
     Return a special host_tag value, representing current host.
     """
     return socket.gethostname()
+
+
+def mangle_testnames(names):
+    names = [x.replace(".py", "") for x in names if x != '()']
+    names[0] = names[0].replace("/", '.')
+    return names
