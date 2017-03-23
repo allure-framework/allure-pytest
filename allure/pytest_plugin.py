@@ -4,14 +4,13 @@ import pytest
 import argparse
 
 from collections import namedtuple
-from _pytest.junitxml import mangle_testnames
 from six import text_type
 
 from allure.common import AllureImpl, StepContext
 from allure.constants import Status, AttachmentType, Severity, \
     FAILED_STATUSES, Label, SKIPPED_STATUSES
 from allure.utils import parent_module, parent_down_from_module, labels_of, \
-    all_of, get_exception_message, now
+    all_of, get_exception_message, now, mangle_testnames
 from allure.structure import TestCase, TestStep, Attach, TestSuite, Failure, TestLabel
 
 
