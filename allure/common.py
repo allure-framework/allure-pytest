@@ -75,7 +75,7 @@ class AllureImpl(object):
     Therefore, basic call order is as follows::
       allure = AllureImpl('./reports')  # this clears ./reports
 
-      allure.star_suite('demo')
+      allure.start_suite('demo')
       allure.start_case('test_one')
       allure.stop_case(Status.PASSED)
       allure.start_case('test_two')
