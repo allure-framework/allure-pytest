@@ -1,29 +1,32 @@
 # -*- coding: utf-8 -*-
-
 """
 Created on Feb 23, 2014
 
 @author: pupssman
 """
-from six import text_type, iteritems
-from contextlib import contextmanager
-from functools import wraps
 import os
 import uuid
+from contextlib import contextmanager
+from distutils.version import StrictVersion
+from functools import wraps
 
-from _pytest.runner import Skipped
-from _pytest.skipping import XFailed
-
-from lxml import etree
 import py
+from _pytest import __version__ as pytest_version
+from lxml import etree
+from six import text_type, iteritems
 
 from allure.constants import AttachmentType, Status
 from allure.structure import Attach, TestStep, TestCase, TestSuite, Failure, Environment, EnvParameter
 from allure.utils import now
 
+if StrictVersion(pytest_version) >= StrictVersion("3.2.0"):
+    from _pytest.outcomes import Skipped, XFailed
+else:
+    from _pytest.runner import Skipped
+    from _pytest.skipping import XFailed
+
 
 class StepContext:
-
     def __init__(self, allure, title):
         self.allure = allure
         self.title = title
@@ -51,15 +54,16 @@ class StepContext:
         Pretend that we are a decorator -- wrap the ``func`` with self.
         FIXME: may fail if evil dude will try to reuse ``pytest.allure.step`` instance.
         """
+
         @wraps(func)
         def impl(*a, **kw):
             with StepContext(self.allure, self.title.format(*a, **kw)):
                 return func(*a, **kw)
+
         return impl
 
 
 class AllureImpl(object):
-
     """
     Allure test-flow implementation that handles test data creation.
     Devised to be used as base layer for allure adaptation to arbitrary test frameworks.
@@ -88,7 +92,8 @@ class AllureImpl(object):
     """
 
     def __init__(self, logdir):
-        self.logdir = os.path.normpath(os.path.abspath(os.path.expanduser(os.path.expandvars(logdir))))
+        self.logdir = os.path.normpath(
+            os.path.abspath(os.path.expanduser(os.path.expandvars(logdir))))
 
         # Delete all files in report directory
         if not os.path.exists(self.logdir):
@@ -110,9 +115,10 @@ class AllureImpl(object):
         """
         Attaches ``contents`` with ``title`` and ``attach_type`` to the current active thing
         """
-        attach = Attach(source=self._save_attach(contents, attach_type=attach_type),
-                        title=title,
-                        type=attach_type.mime_type)
+        attach = Attach(
+            source=self._save_attach(contents, attach_type=attach_type),
+            title=title,
+            type=attach_type.mime_type)
         self.stack[-1].attachments.append(attach)
 
     def start_step(self, name):
@@ -120,11 +126,8 @@ class AllureImpl(object):
         Starts an new :py:class:`allure.structure.TestStep` with given ``name``,
         pushes it to the ``self.stack`` and returns the step.
         """
-        step = TestStep(name=name,
-                        title=name,
-                        start=now(),
-                        attachments=[],
-                        steps=[])
+        step = TestStep(
+            name=name, title=name, start=now(), attachments=[], steps=[])
         self.stack[-1].steps.append(step)
         self.stack.append(step)
         return step
@@ -140,12 +143,13 @@ class AllureImpl(object):
         """
         Starts a new :py:class:`allure.structure.TestCase`
         """
-        test = TestCase(name=name,
-                        description=description,
-                        start=now(),
-                        attachments=[],
-                        labels=labels or [],
-                        steps=[])
+        test = TestCase(
+            name=name,
+            description=description,
+            start=now(),
+            attachments=[],
+            labels=labels or [],
+            steps=[])
         self.stack.append(test)
 
     def stop_case(self, status, message=None, trace=None):
@@ -173,12 +177,13 @@ class AllureImpl(object):
         """
         Starts a new Suite with given ``name`` and ``description``
         """
-        self.testsuite = TestSuite(name=name,
-                                   title=title,
-                                   description=description,
-                                   tests=[],
-                                   labels=labels or [],
-                                   start=now())
+        self.testsuite = TestSuite(
+            name=name,
+            title=title,
+            description=description,
+            tests=[],
+            labels=labels or [],
+            start=now())
 
     def stop_suite(self):
         """
@@ -193,9 +198,13 @@ class AllureImpl(object):
         if not self.environment:
             return
 
-        environment = Environment(id=uuid.uuid4(), name="Allure environment parameters", parameters=[])
+        environment = Environment(
+            id=uuid.uuid4(),
+            name="Allure environment parameters",
+            parameters=[])
         for key, value in iteritems(self.environment):
-            environment.parameters.append(EnvParameter(name=key, key=key, value=value))
+            environment.parameters.append(
+                EnvParameter(name=key, key=key, value=value))
 
         with self._reportfile('environment.xml') as f:
             self._write_xml(f, environment)
@@ -206,7 +215,8 @@ class AllureImpl(object):
 
         :arg body: str or unicode with contents. str is written as-is in byte stream, unicode is written as utf-8 (what do you expect else?)
         """
-        with self._attachfile("%s-attachment.%s" % (uuid.uuid4(), attach_type.extension)) as f:
+        with self._attachfile("%s-attachment.%s" %
+                              (uuid.uuid4(), attach_type.extension)) as f:
             if isinstance(body, text_type):
                 f.write(body.encode('utf-8'))
             else:
@@ -239,4 +249,9 @@ class AllureImpl(object):
             logfile.close()
 
     def _write_xml(self, logfile, xmlfied):
-        logfile.write(etree.tostring(xmlfied.toxml(), pretty_print=True, xml_declaration=False, encoding=text_type))
+        logfile.write(
+            etree.tostring(
+                xmlfied.toxml(),
+                pretty_print=True,
+                xml_declaration=False,
+                encoding=text_type))

@@ -13,7 +13,7 @@ import time
 import pytest
 
 from hamcrest import is_, assert_that, contains, has_property, all_of, has_entry, greater_than, less_than, \
-    has_entries, contains_inanyorder, is_not, has_items, starts_with
+    has_entries, contains_inanyorder, is_not, has_items, starts_with, less_than_or_equal_to
 from allure.constants import Status
 from .matchers import has_float
 
@@ -88,12 +88,12 @@ def test_suite_times(report_for):
 
     assert_that(report.get('start'), has_float(all_of(
         greater_than(start * 1000),
-        less_than(float(report.get('stop')))
+        less_than_or_equal_to(float(report.get('stop')))
     )))
 
     assert_that(report.get('stop'), has_float(all_of(
         greater_than(float(report.get('start'))),
-        less_than(stop * 1000),
+        less_than_or_equal_to(stop * 1000),
     )))
 
 
