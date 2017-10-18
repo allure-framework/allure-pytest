@@ -13,6 +13,7 @@ import hashlib
 import inspect
 import os
 import threading
+import platform
 import socket
 
 from six import text_type, binary_type
@@ -97,6 +98,8 @@ def labels_of(item):
 
     labels.append(TestLabel(name=Label.THREAD, value=thread_tag()))
     labels.append(TestLabel(name=Label.HOST, value=host_tag()))
+    labels.append(TestLabel(name=Label.FRAMEWORK, value='pytest'))
+    labels.append(TestLabel(name=Label.LANGUAGE, value=platform_tag()))
 
     return labels
 
@@ -162,6 +165,16 @@ def host_tag():
     Return a special host_tag value, representing current host.
     """
     return socket.gethostname()
+
+
+def platform_tag():
+    """
+    Return a special platform_tag value represent python type and version
+    """
+    major_version, _, __ = platform.python_version_tuple()
+    implementation = platform.python_implementation()
+    return '{implementation}{major_version}'.format(implementation=implementation.lower(),
+                                                    major_version=major_version)
 
 
 def mangle_testnames(names):
