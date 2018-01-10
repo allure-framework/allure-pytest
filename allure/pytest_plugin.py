@@ -145,6 +145,13 @@ class AllureTestListener(object):
         if self.test:
             self.test.labels.extend([TestLabel(name=Label.ISSUE, value=issue) for issue in issues])
 
+    def description(self, description):
+        """
+        Sets description for the test
+        """
+        if self.test:
+            self.test.description = description
+
     def start_step(self, name):
         """
         Starts an new :py:class:`allure.structure.TestStep` with given ``name``,
@@ -295,13 +302,13 @@ class LazyInitStepContext(StepContext):
 
     @property
     def allure(self):
-        l = self.allure_helper.get_listener()
+        listener = self.allure_helper.get_listener()
 
         # if listener has `stack` we are inside a test
         # record steps only when that
         # FIXME: this breaks encapsulation a lot
-        if hasattr(l, 'stack'):
-            return l
+        if hasattr(listener, 'stack'):
+            return listener
 
 
 class AllureHelper(object):
@@ -361,6 +368,13 @@ class AllureHelper(object):
         """
         if self._allurelistener:
             self._allurelistener.dynamic_issue(*issues)
+
+    def description(self, description):
+        """
+        Sets description for the test
+        """
+        if self._allurelistener:
+            self._allurelistener.description(description)
 
     def testcase(self, *testcases):
         """
