@@ -35,6 +35,7 @@ class StepContext:
     def __enter__(self):
         if self.allure:
             self.step = self.allure.start_step(self.title)
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.allure:
