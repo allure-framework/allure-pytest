@@ -1,3 +1,6 @@
+# [DEPRICATED]
+## Please follow https://github.com/allure-framework/allure-python
+
 Allure Pytest Adaptor
 =====================
 
